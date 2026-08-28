@@ -7,6 +7,7 @@ import { getTitleById } from "@sofa/db/queries/title";
 import type { titleAvailability } from "@sofa/db/schema";
 import { createLogger } from "@sofa/logger";
 import { getWatchProviders } from "@sofa/tmdb/client";
+import { WATCH_REGION } from "@sofa/config";
 
 const log = createLogger("availability");
 
@@ -15,15 +16,15 @@ export async function refreshAvailability(titleId: string) {
   if (!title) return;
 
   const data = await getWatchProviders(title.tmdbId, title.type);
-  const us = data.results?.US;
+  const providers = data.results?.[WATCH_REGION];
   const now = new Date();
   const offerTypes = ["flatrate", "rent", "buy", "free", "ads"] as const;
 
   const allOfferRows: (typeof titleAvailability.$inferInsert)[] = [];
-  if (us) {
+  if (providers) {
     for (const offerType of offerTypes) {
-      const providers = us[offerType];
-      if (!providers) continue;
+      const providersForType = providers[offerType];
+      if (!providersForType) continue;
       for (const p of providers) {
         const platformId = ensurePlatformForTmdbProvider(
           p.provider_id,
@@ -34,21 +35,21 @@ export async function refreshAvailability(titleId: string) {
           titleId,
           platformId,
           offerType,
-          region: "US",
+          region: WATCH_REGION,
           lastFetchedAt: now,
         });
       }
     }
   }
 
-  replaceAvailabilityTransaction(titleId, "US", allOfferRows);
+  replaceAvailabilityTransaction(titleId, WATCH_REGION, allOfferRows);
 
-  if (!us) {
-    log.debug(`No US providers for title ${titleId}; cleared cached offers`);
+  if (!providers) {
+    log.debug(`No ${WATCH_REGION} providers for title ${titleId}; cleared cached offers`);
     return;
   }
 
-  const total = offerTypes.reduce((n, t) => n + (us[t]?.length ?? 0), 0);
+  const total = offerTypes.reduce((n, t) => n + (providers[t]?.length ?? 0), 0);
   log.debug(`Refreshed availability for title ${titleId}: ${total} offers`);
 }
 
