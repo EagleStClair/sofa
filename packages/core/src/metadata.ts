@@ -61,6 +61,7 @@ import {
   generateTitleBackdropThumbHash,
   generateTitlePosterThumbHash,
 } from "./thumbhash";
+import { WATCH_REGION } from "@sofa/config";
 
 const log = createLogger("metadata");
 
@@ -123,9 +124,9 @@ export function updateTitleWithArtInvalidation(
 
 /** @internal */
 export function extractMovieContentRating(movie: TmdbMovieDetails): string | null {
-  const us = movie.release_dates?.results?.find((r) => r.iso_3166_1 === "US");
-  if (!us) return null;
-  for (const rd of us.release_dates ?? []) {
+  const region = movie.release_dates?.results?.find((r) => r.iso_3166_1 === WATCH_REGION);
+  if (!region) return null;
+  for (const rd of region.release_dates ?? []) {
     if (rd.certification) return rd.certification;
   }
   return null;
@@ -133,8 +134,8 @@ export function extractMovieContentRating(movie: TmdbMovieDetails): string | nul
 
 /** @internal */
 export function extractTvContentRating(show: TmdbTvDetails): string | null {
-  const us = show.content_ratings?.results?.find((r) => r.iso_3166_1 === "US");
-  return us?.rating || null;
+  const region = show.content_ratings?.results?.find((r) => r.iso_3166_1 === WATCH_REGION);
+  return region?.rating || null;
 }
 
 /** Fire-and-forget enrichment tasks (availability, recommendations, art, credits, trailer) */
