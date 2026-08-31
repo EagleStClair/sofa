@@ -25,7 +25,7 @@ export async function refreshAvailability(titleId: string) {
     for (const offerType of offerTypes) {
       const providersForType = providers[offerType];
       if (!providersForType) continue;
-      for (const p of providers) {
+      for (const p of providersForType) {
         const platformId = ensurePlatformForTmdbProvider(
           p.provider_id,
           p.provider_name ?? "",
