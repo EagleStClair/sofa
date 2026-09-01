@@ -32,9 +32,7 @@ import {
   syncTvChildArt,
 } from "@sofa/core/metadata";
 import { getSetting } from "@sofa/core/settings";
-import { performTelemetryReport } from "@sofa/core/telemetry";
 import { generateTitleBackdropThumbHash, generateTitlePosterThumbHash } from "@sofa/core/thumbhash";
-import { performUpdateCheck } from "@sofa/core/update-check";
 import { createLogger } from "@sofa/logger";
 import { getTvDetails } from "@sofa/tmdb/client";
 
@@ -299,12 +297,6 @@ export function startJobs() {
   schedule("refreshTvChildren", "30 */12 * * *", refreshTvChildrenJob);
   schedule("cacheImages", "0 1,13 * * *", cacheImagesJob);
   schedule("refreshCredits", "0 2 * * *", refreshCreditsJob);
-  schedule("updateCheck", "0 */6 * * *", async () => {
-    await performUpdateCheck();
-  });
-  schedule("telemetryReport", "30 0 * * *", async () => {
-    await performTelemetryReport();
-  });
   schedule("optimizeDb", "0 4 * * 0", async () => {
     const { optimizeDatabase } = await import("@sofa/db/client");
     const { deleteOldCronRuns } = await import("@sofa/db/queries/cron");

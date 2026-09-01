@@ -21,8 +21,6 @@ import backupsRoutes from "./routes/backups";
 import exportRoutes from "./routes/export";
 import healthRoutes from "./routes/health";
 import imagesRoutes from "./routes/images";
-import listsRoutes from "./routes/lists";
-import webhooksRoutes from "./routes/webhooks";
 
 const log = createLogger("server");
 
@@ -79,8 +77,6 @@ app.route("/api/auth", authRoutes);
 app.route("/api/avatars", avatarsRoutes);
 app.route("/api/backup", backupsRoutes);
 app.route("/api/export", exportRoutes);
-app.route("/api/webhooks", webhooksRoutes);
-app.route("/api/lists", listsRoutes);
 
 // Cached images — serve from disk (fast path), fall back to TMDB fetch on miss
 if (imageCacheEnabled()) {
