@@ -271,5 +271,33 @@
     "logoPath": "/jwRPknT20dfU1GeVqbcDXFyvtdG.jpg",
     "urlTemplate": "https://vix.com/es-es/search?q={title}",
     "isSubscription": true
+  },
+  {
+    "tmdbProviderIds": [493],
+    "name": "SVT",
+    "logoPath": "/oBdaG066fB5O7XYrYKQflOZvd89.jpg",
+    "urlTemplate": "https://www.svtplay.se/sok?q={title}",
+    "isSubscription": false
+  },
+  {
+    "tmdbProviderIds": [496],
+    "name": "Cineasterna",
+    "logoPath": "/w1V9hzBaRlkpISBWhCv676kI8Mp.jpg",
+    "urlTemplate": "https://www.cineasterna.com/sok?q={title}",
+    "isSubscription": false
+  },
+  {
+    "tmdbProviderIds": [76],
+    "name": "Viaplay",
+    "logoPath": "/bnoTnLzz2MAhK3Yc6P9KXe5drIz.jpg",
+    "urlTemplate": "https://viaplay.se/sok?q={title}",
+    "isSubscription": true
+  },
+  {
+    "tmdbProviderIds": [1944],
+    "name": "TV4 Play",
+    "logoPath": "/5lKPs5yrjeKHFrXh9RIvzyJJzSd.jpg",
+    "urlTemplate": "https://www.tv4play.se/sok?q={title}",
+    "isSubscription": true
   }
 ]
