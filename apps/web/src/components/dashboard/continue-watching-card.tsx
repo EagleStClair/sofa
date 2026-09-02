@@ -1,7 +1,10 @@
 import { plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
-import { IconPlayerPlay } from "@tabler/icons-react";
+import { IconCheck, IconPlayerPlay } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+
+import { orpc } from "@/lib/orpc/client";
 
 import { thumbHashToUrl } from "@/lib/thumbhash";
 
@@ -13,6 +16,7 @@ export interface ContinueWatchingItemProps {
     backdropThumbHash?: string | null;
   };
   nextEpisode: {
+    id: string;
     seasonNumber: number;
     episodeNumber: number;
     name: string | null;
@@ -25,17 +29,30 @@ export interface ContinueWatchingItemProps {
 
 export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps }) {
   const { t } = useLingui();
+  const queryClient = useQueryClient();
+
+  const markWatched = useMutation(
+    orpc.tracking.watch.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: orpc.library.continueWatching.queryKey(),
+        });
+      },
+    }),
+  );
+
   const stillUrl = item.nextEpisode?.stillPath ?? item.title.backdropPath ?? null;
   const progress = item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0;
   const watchedEpisodes = item.watchedEpisodes;
   const totalEpisodes = item.totalEpisodes;
 
   return (
-    <Link
-      to="/titles/$id"
-      params={{ id: item.title.id }}
-      className="group bg-card/50 relative inline-block w-64 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.06] transition-shadow hover:shadow-lg hover:shadow-black/25 sm:w-72"
-    >
+ <div className="group bg-card/50 relative inline-block w-64 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/[0.06] transition-shadow hover:shadow-lg hover:shadow-black/25 sm:w-72">
+  <Link
+    to="/titles/$id"
+    params={{ id: item.title.id }}
+    className="block"
+  >
       <div
         className="bg-muted relative aspect-video overflow-hidden rounded-t-xl"
         style={(() => {
@@ -80,15 +97,30 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
             {t`${watchedEpisodes}/${plural(totalEpisodes, { one: "# episode", other: "# episodes" })}`}
           </p>
         </div>
-        <div className="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors">
-          <IconPlayerPlay aria-hidden={true} className="size-3.5" />
-        </div>
       </div>
+      </Link>
+        <button
+          type="button"
+          aria-label={t`Mark episode as watched`}
+          disabled={!item.nextEpisode || markWatched.isPending}
+          onClick={() => {
+            if (!item.nextEpisode) return;
+
+            markWatched.mutate({
+              scope: "episode",
+              ids: [item.nextEpisode.id],
+            });
+          }}
+          className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground absolute right-3 bottom-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50"
+        >
+          <IconCheck aria-hidden={true} className="size-4" />
+        </button>
+      
       {progress > 0 && (
         <div className="bg-muted absolute right-0 bottom-0 left-0 h-0.5">
           <div className="bg-primary h-full transition-[width]" style={{ width: `${progress}%` }} />
         </div>
       )}
-    </Link>
+    </div>
   );
 }
