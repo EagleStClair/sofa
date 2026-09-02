@@ -211,8 +211,8 @@ export function parseTraktPayload(data: {
     const movie = item.movie;
     if (!movie?.title) continue;
     movies.push({
-      tmdbId: movie.ids?.tmdb,
-      imdbId: movie.ids?.imdb,
+      tmdbId: movie.ids?.tmdb ?? undefined,
+      imdbId: movie.ids?.imdb ?? undefined,
       title: movie.title,
       year: movie.year,
       watchedAt: item.watched_at,
@@ -225,9 +225,9 @@ export function parseTraktPayload(data: {
     const ep = item.episode;
     if (!show?.title || ep?.season == null || ep?.number == null) continue;
     episodes.push({
-      showTmdbId: show.ids?.tmdb,
-      imdbId: show.ids?.imdb,
-      tvdbId: show.ids?.tvdb,
+      showTmdbId: show.ids?.tmdb ?? undefined,
+      imdbId: show.ids?.imdb ?? undefined,
+      tvdbId: show.ids?.tvdb ?? undefined,
       showTitle: show.title,
       year: show.year,
       seasonNumber: ep.season,
@@ -241,9 +241,9 @@ export function parseTraktPayload(data: {
     const entry = item.type === "movie" ? item.movie : item.show;
     if (!entry?.title) continue;
     watchlist.push({
-      tmdbId: entry.ids?.tmdb,
-      imdbId: entry.ids?.imdb,
-      tvdbId: entry.ids?.tvdb,
+      tmdbId: entry.ids?.tmdb ?? undefined,
+      imdbId: entry.ids?.imdb ?? undefined,
+      tvdbId: entry.ids?.tvdb ?? undefined,
       title: entry.title,
       year: entry.year,
       type: item.type === "show" ? "tv" : "movie",
@@ -260,9 +260,9 @@ export function parseTraktPayload(data: {
       continue;
     }
     ratings.push({
-      tmdbId: entry.ids?.tmdb,
-      imdbId: entry.ids?.imdb,
-      tvdbId: entry.ids?.tvdb,
+      tmdbId: entry.ids?.tmdb ?? undefined,
+      imdbId: entry.ids?.imdb ?? undefined,
+      tvdbId: entry.ids?.tvdb ?? undefined,
       title: entry.title,
       year: entry.year,
       type: item.type === "show" ? "tv" : "movie",
