@@ -89,6 +89,7 @@ export interface LibraryFilters {
   yearMax?: number;
   contentRating?: string;
   onMyServices?: boolean;
+  rentBuyAvailable?: boolean;
   sortBy: string;
   sortDirection: "asc" | "desc";
   page: number;
@@ -161,6 +162,7 @@ export function getFilteredLibrary(userId: string, filters: LibraryFilters) {
           SELECT 1 FROM ${titleAvailability} ta
           JOIN ${userPlatforms} up ON ta.platformId = up.platformId
           WHERE ta.titleId = ${titles.id} AND up.userId = ${userId}
+          AND ta.offerType IN ('flatrate', 'free', 'ads')
         )`,
       );
     } else {
@@ -170,6 +172,16 @@ export function getFilteredLibrary(userId: string, filters: LibraryFilters) {
       );
     }
   }
+
+  if (filters.rentBuyAvailable) {
+  conditions.push(
+    sql`EXISTS (
+      SELECT 1 FROM ${titleAvailability} ta
+      WHERE ta.titleId = ${titles.id}
+      AND ta.offerType IN ('rent', 'buy')
+    )`,
+  );
+}
 
   // Status filtering: optimize simple cases
   if (filters.statuses && filters.statuses.length > 0 && !needsDisplayStatus) {

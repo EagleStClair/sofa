@@ -131,9 +131,9 @@ function PeriodSelector({
   const { t } = useLingui();
   const periodLabels: Record<TimePeriod, string> = {
     today: t`Today`,
-    this_week: t`This Week`,
-    this_month: t`This Month`,
-    this_year: t`This Year`,
+    this_week: t`Last 7 Days`,
+    this_month: t`Last 30 Days`,
+    this_year: t`Last 365 Days`,
   };
 
   const select = (

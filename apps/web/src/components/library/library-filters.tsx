@@ -27,6 +27,7 @@ export interface LibraryFiltersProps {
     yearMax?: number;
     contentRating?: string;
     onMyServices?: boolean;
+    rentBuyAvailable?: boolean;
   };
   onFilterChange: (key: string, value: unknown) => void;
   onClearAll: () => void;
@@ -307,6 +308,17 @@ export function LibraryFilters({
           aria-label={t`On my services`}
         />
         <span className="text-muted-foreground text-[11px]">{t`On my services`}</span>
+      </label>
+
+      {/* Rent/buy available */}
+      <label className="flex cursor-pointer items-center gap-1.5">
+        <Switch
+          size="sm"
+          checked={filters.rentBuyAvailable ?? false}
+          onCheckedChange={(checked) => onFilterChange("rentBuyAvailable", checked || undefined)}
+          aria-label={t`Rent/buy`}
+        />
+        <span className="text-muted-foreground text-[11px]">{t`Rent/buy`}</span>
       </label>
 
       {/* Clear */}

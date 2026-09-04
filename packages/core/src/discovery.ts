@@ -260,7 +260,7 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
           }
         } else if (!nextEpisode) {
           // Skip episodes not yet aired
-          if (ep.airDate && ep.airDate > today) continue;
+          if (!ep.airDate || ep.airDate > today) continue;
           nextEpisode = {
             id: ep.id,
             seasonNumber: s.seasonNumber,

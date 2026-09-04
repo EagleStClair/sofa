@@ -23,6 +23,7 @@ const librarySearchSchema = z.object({
   yearMax: z.number().optional().catch(undefined),
   contentRating: z.string().optional().catch(undefined),
   onMyServices: z.boolean().optional().catch(undefined),
+  rentBuyAvailable: z.boolean().optional().catch(undefined),
   sortBy: z.string().optional().catch(undefined),
   sortDirection: z.enum(["asc", "desc"]).optional().catch(undefined),
 });
@@ -143,6 +144,7 @@ function LibraryPage() {
     if (search.yearMax) input.yearMax = search.yearMax;
     if (search.contentRating) input.contentRating = search.contentRating;
     if (search.onMyServices) input.onMyServices = true;
+    if (search.rentBuyAvailable) input.rentBuyAvailable = true;
     if (search.sortBy) input.sortBy = search.sortBy;
     if (search.sortDirection) input.sortDirection = search.sortDirection;
     return input;
@@ -176,6 +178,7 @@ function LibraryPage() {
     search.yearMin || search.yearMax ? 1 : 0,
     search.contentRating ? 1 : 0,
     search.onMyServices ? 1 : 0,
+    rentBuyAvailable: search.rentBuyAvailable,
   ].reduce((a, b) => a + b, 0);
 
   return (
@@ -204,6 +207,7 @@ function LibraryPage() {
           yearMax: search.yearMax,
           contentRating: search.contentRating,
           onMyServices: search.onMyServices,
+          rentBuyAvailable: search.rentBuyAvailable,
         }}
         onFilterChange={handleFilterChange}
         onClearAll={handleClearAll}

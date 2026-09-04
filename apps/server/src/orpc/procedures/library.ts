@@ -17,6 +17,7 @@ export const list = os.library.list.use(authed).handler(({ input, context }) => 
     yearMax: input.yearMax,
     contentRating: input.contentRating,
     onMyServices: input.onMyServices,
+    rentBuyAvailable: input.rentBuyAvailable,
     sortBy: input.sortBy,
     sortDirection: input.sortDirection,
     page: input.page,

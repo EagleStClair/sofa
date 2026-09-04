@@ -602,6 +602,7 @@ export const LibraryListInput = z
       .boolean()
       .optional()
       .describe("Only show titles available on the user's streaming services"),
+    rentBuyAvailable: z.boolean().optional(),
     sortBy: z
       .enum(["title", "added_at", "release_date", "popularity", "user_rating", "vote_average"])
       .default("added_at")
