@@ -178,7 +178,7 @@ function LibraryPage() {
     search.yearMin || search.yearMax ? 1 : 0,
     search.contentRating ? 1 : 0,
     search.onMyServices ? 1 : 0,
-    rentBuyAvailable: search.rentBuyAvailable,
+    search.rentBuyAvailable ? 1 : 0,
   ].reduce((a, b) => a + b, 0);
 
   return (
