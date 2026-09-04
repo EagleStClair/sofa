@@ -30,6 +30,8 @@ ENV NODE_ENV=production
 ENV APP_VERSION=${APP_VERSION}
 ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
 
+RUN bun run i18n:extract
+
 RUN bunx turbo run build --filter=@sofa/web --filter=@sofa/server
 
 # --- Production runner ---
