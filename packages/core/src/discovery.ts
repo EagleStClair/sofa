@@ -249,9 +249,10 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
 
     for (const s of titleSeasonsArr) {
       const eps = episodesBySeason.get(s.id) ?? [];
-      totalEpisodes += eps.length;
-
       for (const ep of eps) {
+        const hasAired = ep.airDate && ep.airDate <= today;
+        if (!hasAired && !watchedEpisodeIds.has(ep.id)) continue;
+        totalEpisodes++;
         if (watchedEpisodeIds.has(ep.id)) {
           watchedEpisodes++;
           const watchDate = watchDateMap.get(ep.id);
