@@ -1,5 +1,5 @@
 import { and, asc, countDistinct, desc, eq, gte, isNotNull, lte, sql } from "drizzle-orm";
-
+import { unionAll } from "drizzle-orm/sqlite-core";
 import { db } from "../client";
 import {
   episodes,
@@ -344,24 +344,34 @@ export function getLibraryGenres(userId: string) {
 }
 
 export function getRecentlyWatched(userId: string, limit: number) {
+  const movieWatchTitles = db
+    .select({
+      titleId: userMovieWatches.titleId,
+      watchedAt: userMovieWatches.watchedAt,
+    })
+    .from(userMovieWatches)
+    .where(eq(userMovieWatches.userId, userId));
+
+  const episodeWatchTitles = db
+    .select({
+      titleId: seasons.titleId,
+      watchedAt: userEpisodeWatches.watchedAt,
+    })
+    .from(userEpisodeWatches)
+    .innerJoin(episodes, eq(episodes.id, userEpisodeWatches.episodeId))
+    .innerJoin(seasons, eq(seasons.id, episodes.seasonId))
+    .where(eq(userEpisodeWatches.userId, userId));
+
+  const allWatches = unionAll(movieWatchTitles, episodeWatchTitles).as("allWatches");
+
   const recentTitleIds = db
     .select({
-      titleId: sql<string>`titleId`,
-      lastWatchedAt: sql<number>`MAX(watchedAt)`,
+      titleId: allWatches.titleId,
+      lastWatchedAt: sql<number>`MAX(${allWatches.watchedAt})`.as("lastWatchedAt"),
     })
-    .from(
-      sql`(
-        SELECT titleId, watchedAt FROM ${userMovieWatches} WHERE userId = ${userId}
-        UNION ALL
-        SELECT ${seasons.titleId} AS titleId, ${userEpisodeWatches.watchedAt} AS watchedAt
-        FROM ${userEpisodeWatches}
-        JOIN ${episodes} ON ${episodes.id} = ${userEpisodeWatches.episodeId}
-        JOIN ${seasons} ON ${seasons.id} = ${episodes.seasonId}
-        WHERE ${userEpisodeWatches.userId} = ${userId}
-      )`,
-    )
-    .groupBy(sql`titleId`)
-    .orderBy(sql`MAX(watchedAt) DESC`)
+    .from(allWatches)
+    .groupBy(allWatches.titleId)
+    .orderBy(sql`MAX(${allWatches.watchedAt}) DESC`)
     .limit(limit)
     .as("recent");
 
