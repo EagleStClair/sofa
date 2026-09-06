@@ -19,6 +19,24 @@ export const MediaTypeParam = z.object({
 export const TrendingTypeParam = z.object({
   type: z.enum(["all", "movie", "tv"]).describe("Trending category: all, movie, or tv"),
 });
+
+export const RecentlyWatchedInput = z.object({
+  limit: z.number().min(1).max(50).default(10),
+});
+
+export const RecentlyWatchedOutput = z.array(
+  z.object({
+    id: z.string(),
+    tmdbId: z.number(),
+    title: z.string(),
+    type: z.string(),
+    posterPath: z.string().nullable(),
+    posterThumbHash: z.string().nullable().optional(),
+    releaseDate: z.string().nullable().optional(),
+    firstAirDate: z.string().nullable().optional(),
+    voteAverage: z.number().nullable().optional(),
+  }),
+);
 // ─── Pagination ──────────────────────────────────────────────
 
 /** Page param for TMDB-backed endpoints (fixed ~20 items/page from TMDB) */

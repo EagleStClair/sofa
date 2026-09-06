@@ -31,11 +31,7 @@ export function StatsSection() {
 
   return (
     <>
-      <StatsDisplay
-        movieStats={movieStats}
-        episodeStats={episodeStats}
-        libraryStats={libraryStats}
-      />
+      <StatsDisplay movieStats={movieStats} episodeStats={episodeStats} />
       {isEmpty && (
         <div className="border-border/50 flex flex-col items-center gap-4 rounded-xl border border-dashed py-16 text-center">
           <div className="bg-primary/10 rounded-full p-4">

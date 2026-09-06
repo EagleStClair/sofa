@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { IconBooks, IconCheck, IconDeviceTvOld, IconMovie } from "@tabler/icons-react";
+import { IconDeviceTvOld, IconMovie } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/client";
-import type { HistoryBucket, LibraryStats, TimePeriod } from "@sofa/api/schemas";
+import type { HistoryBucket, TimePeriod } from "@sofa/api/schemas";
 
 import { Sparkline } from "./sparkline";
 
@@ -30,9 +30,7 @@ function StatCardSkeleton() {
 
 export function StatsSectionSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <StatCardSkeleton />
-      <StatCardSkeleton />
+    <div className="grid grid-cols-2 gap-3">
       <StatCardSkeleton />
       <StatCardSkeleton />
     </div>
@@ -160,11 +158,9 @@ interface WatchStats {
 interface StatsDisplayProps {
   movieStats: WatchStats;
   episodeStats: WatchStats;
-  libraryStats: LibraryStats;
 }
 
-export function StatsDisplay({ movieStats, episodeStats, libraryStats }: StatsDisplayProps) {
-  const { t } = useLingui();
+export function StatsDisplay({ movieStats, episodeStats }: StatsDisplayProps) {
   const [moviePeriod, setMoviePeriod] = useState<TimePeriod>("this_month");
   const [episodePeriod, setEpisodePeriod] = useState<TimePeriod>("this_week");
 
@@ -186,7 +182,7 @@ export function StatsDisplay({ movieStats, episodeStats, libraryStats }: StatsDi
   const episodeHistory = episodePeriodStats?.history ?? episodeStats.history;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3">
       <StatCard
         icon={IconMovie}
         color="text-primary"
@@ -212,22 +208,6 @@ export function StatsDisplay({ movieStats, episodeStats, libraryStats }: StatsDi
             onPeriodChange={setEpisodePeriod}
           />
         }
-      />
-      <StatCard
-        icon={IconBooks}
-        color="text-status-watchlist"
-        bgColor="bg-status-watchlist/10"
-        value={libraryStats.size}
-        index={2}
-        label={t`In Library`}
-      />
-      <StatCard
-        icon={IconCheck}
-        color="text-status-completed"
-        bgColor="bg-status-completed/10"
-        value={libraryStats.completed}
-        index={3}
-        label={t`Completed`}
       />
     </div>
   );
