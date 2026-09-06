@@ -5,7 +5,7 @@ import {
   type LibraryFilters,
 } from "@sofa/db/queries/library";
 
-import { getDisplayStatusesByTitleIds } from "./tracking";
+import { getDisplayStatusesByTitleIds, getEpisodeProgressByTitleIds } from "./tracking";
 
 export type { LibraryFilters };
 
@@ -40,5 +40,16 @@ export function getLibraryGenresList(userId: string) {
 }
 
 export function getRecentlyWatchedFeed(userId: string, limit: number) {
-  return getRecentlyWatched(userId, limit);
+  const items = getRecentlyWatched(userId, limit);
+  const titleIds = items.map((i) => i.titleId);
+  const displayStatuses = getDisplayStatusesByTitleIds(userId, titleIds);
+
+  const tvTitleIds = items.filter((i) => i.type === "tv").map((i) => i.titleId);
+  const episodeProgress = getEpisodeProgressByTitleIds(userId, tvTitleIds);
+
+  return items.map((item) => ({
+    ...item,
+    userStatus: displayStatuses[item.titleId] ?? null,
+    episodeProgress: item.type === "tv" ? (episodeProgress[item.titleId] ?? null) : null,
+  }));
 }

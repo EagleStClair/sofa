@@ -35,6 +35,8 @@ export const RecentlyWatchedOutput = z.array(
     releaseDate: z.string().nullable().optional(),
     firstAirDate: z.string().nullable().optional(),
     voteAverage: z.number().nullable().optional(),
+    userStatus: z.enum(["in_watchlist", "watching", "caught_up", "completed"]).nullable().optional(),
+    episodeProgress: z.object({ watched: z.number(), total: z.number() }).nullable().optional(),
   }),
 );
 // ─── Pagination ──────────────────────────────────────────────

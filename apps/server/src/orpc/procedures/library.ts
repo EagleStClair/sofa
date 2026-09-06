@@ -114,5 +114,7 @@ export const recentlyWatched = os.library.recentlyWatched.use(authed).handler(({
     releaseDate: item.releaseDate ?? null,
     firstAirDate: item.firstAirDate ?? null,
     voteAverage: item.voteAverage,
+    userStatus: item.userStatus,
+    episodeProgress: item.episodeProgress,
   }));
 });
