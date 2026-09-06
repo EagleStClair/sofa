@@ -38,6 +38,8 @@ import {
   PublicInfoOutput,
   PurgeImageCacheOutput,
   PurgeMetadataCacheOutput,
+  RecentlyWatchedInput,
+  RecentlyWatchedOutput,
   RestoreBackupInput,
   SearchInput,
   SearchOutput,

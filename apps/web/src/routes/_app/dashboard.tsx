@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ContinueWatchingSectionSkeleton } from "@/components/dashboard/continue-watching-list";
 import { ContinueWatchingSection } from "@/components/dashboard/continue-watching-section";
-import { RecentlyWatchedSectionSkeleton } from "@/components/dashboard/recently-watched-list";
 import { RecentlyWatchedSection } from "@/components/dashboard/recently-watched-section";
 import { StatsSectionSkeleton } from "@/components/dashboard/stats-display";
 import { StatsSection } from "@/components/dashboard/stats-section";
+import { TitleGridSectionSkeleton } from "@/components/dashboard/title-grid";
 import { UpcomingSection } from "@/components/dashboard/upcoming-section";
 import { RouteError } from "@/components/route-error";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,7 +45,7 @@ function DashboardSkeleton() {
       </div>
       <StatsSectionSkeleton />
       <ContinueWatchingSectionSkeleton />
-      <RecentlyWatchedSectionSkeleton />
+      <TitleGridSectionSkeleton />
     </div>
   );
 }
