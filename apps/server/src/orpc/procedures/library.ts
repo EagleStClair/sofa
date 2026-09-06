@@ -101,6 +101,7 @@ export const upcoming = os.library.upcoming.use(authed).handler(({ input, contex
     nextCursor: result.nextCursor,
   };
 });
+
 export const recentlyWatched = os.library.recentlyWatched.use(authed).handler(({ input, context }) => {
   const items = getRecentlyWatchedFeed(context.user.id, input.limit);
   return items.map((item) => ({

@@ -28,7 +28,7 @@ export const implementedRouter = {
     stats: library.stats,
     continueWatching: library.continueWatching,
     upcoming: library.upcoming,
-    recentlyWatched; library.recentlyWatched,
+    recentlyWatched: library.recentlyWatched,
   },
   discover: {
     trending: discover.trending,

@@ -39,8 +39,6 @@ export function getLibraryGenresList(userId: string) {
   return getLibraryGenres(userId);
 }
 
-import { getRecentlyWatched } from "@sofa/db/queries/library";
-
 export function getRecentlyWatchedFeed(userId: string, limit: number) {
   return getRecentlyWatched(userId, limit);
 }
