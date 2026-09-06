@@ -243,6 +243,17 @@ export const contract = {
       })
       .input(UpcomingInput)
       .output(UpcomingOutput),
+    recentlyWatched: oc
+      .route({
+        method: "GET",
+        path: "/library/recently-watched",
+        tags: ["Library"],
+        summary: "Get recently watched titles",
+        description: "Fetch the most recently watched movies and shows, most recent first.",
+        successDescription: "Recently watched titles",
+      })
+      .input(RecentlyWatchedInput)
+      .output(RecentlyWatchedOutput),
   },
 
   // ─── Discover ───────────────────────────────────────────────

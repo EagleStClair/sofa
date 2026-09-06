@@ -1,5 +1,5 @@
 import { getContinueWatchingFeed, getUserStats, getUpcomingFeed } from "@sofa/core/discovery";
-import { getFilteredLibraryFeed, getLibraryGenresList } from "@sofa/core/library";
+import { getFilteredLibraryFeed, getLibraryGenresList, getRecentlyWatchedFeed } from "@sofa/core/library";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
 
 import { os } from "../context";
@@ -100,4 +100,18 @@ export const upcoming = os.library.upcoming.use(authed).handler(({ input, contex
     })),
     nextCursor: result.nextCursor,
   };
+});
+export const recentlyWatched = os.library.recentlyWatched.use(authed).handler(({ input, context }) => {
+  const items = getRecentlyWatchedFeed(context.user.id, input.limit);
+  return items.map((item) => ({
+    id: item.titleId,
+    tmdbId: item.tmdbId,
+    title: item.title,
+    type: item.type,
+    posterPath: tmdbImageUrl(item.posterPath, "posters"),
+    posterThumbHash: item.posterThumbHash ?? null,
+    releaseDate: item.releaseDate ?? null,
+    firstAirDate: item.firstAirDate ?? null,
+    voteAverage: item.voteAverage,
+  }));
 });

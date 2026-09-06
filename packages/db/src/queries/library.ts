@@ -9,6 +9,7 @@ import {
   titleGenres,
   titles,
   userEpisodeWatches,
+  userMovieWatches,
   userPlatforms,
   userRatings,
   userTitleStatus,
@@ -339,5 +340,45 @@ export function getLibraryGenres(userId: string) {
     )
     .groupBy(genres.id, genres.name)
     .orderBy(asc(genres.name))
+    .all();
+}
+
+export function getRecentlyWatched(userId: string, limit: number) {
+  const recentTitleIds = db
+    .select({
+      titleId: sql<string>`titleId`,
+      lastWatchedAt: sql<number>`MAX(watchedAt)`,
+    })
+    .from(
+      sql`(
+        SELECT titleId, watchedAt FROM ${userMovieWatches} WHERE userId = ${userId}
+        UNION ALL
+        SELECT ${seasons.titleId} AS titleId, ${userEpisodeWatches.watchedAt} AS watchedAt
+        FROM ${userEpisodeWatches}
+        JOIN ${episodes} ON ${episodes.id} = ${userEpisodeWatches.episodeId}
+        JOIN ${seasons} ON ${seasons.id} = ${episodes.seasonId}
+        WHERE ${userEpisodeWatches.userId} = ${userId}
+      )`,
+    )
+    .groupBy(sql`titleId`)
+    .orderBy(sql`MAX(watchedAt) DESC`)
+    .limit(limit)
+    .as("recent");
+
+  return db
+    .select({
+      titleId: titles.id,
+      tmdbId: titles.tmdbId,
+      title: titles.title,
+      type: titles.type,
+      posterPath: titles.posterPath,
+      posterThumbHash: titles.posterThumbHash,
+      releaseDate: titles.releaseDate,
+      firstAirDate: titles.firstAirDate,
+      voteAverage: titles.voteAverage,
+    })
+    .from(recentTitleIds)
+    .innerJoin(titles, eq(titles.id, recentTitleIds.titleId))
+    .orderBy(sql`${recentTitleIds.lastWatchedAt} DESC`)
     .all();
 }
