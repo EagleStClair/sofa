@@ -105,15 +105,17 @@ export const upcoming = os.library.upcoming.use(authed).handler(({ input, contex
 export const recentlyWatched = os.library.recentlyWatched.use(authed).handler(({ input, context }) => {
   const items = getRecentlyWatchedFeed(context.user.id, input.limit);
   return items.map((item) => ({
-    id: item.titleId,
+    episodeId: item.episodeId,
+    titleId: item.titleId,
     tmdbId: item.tmdbId,
-    title: item.title,
-    type: item.type,
+    titleName: item.titleName,
+    titleType: item.titleType,
     posterPath: tmdbImageUrl(item.posterPath, "posters"),
-    posterThumbHash: item.posterThumbHash ?? null,
-    releaseDate: item.releaseDate ?? null,
-    firstAirDate: item.firstAirDate ?? null,
-    voteAverage: item.voteAverage,
+    posterThumbHash: item.posterThumbHash,
+    seasonNumber: item.seasonNumber,
+    episodeNumber: item.episodeNumber,
+    episodeName: item.episodeName,
+    watchedAt: item.watchedAt,
     userStatus: item.userStatus,
     episodeProgress: item.episodeProgress,
   }));
