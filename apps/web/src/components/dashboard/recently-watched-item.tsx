@@ -46,11 +46,7 @@ export function RecentlyWatchedRow({ item }: { item: RecentlyWatchedItem }) {
         <span className="truncate text-sm font-medium">{item.titleName}</span>
         <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
           {item.titleType === "movie" && <IconMovie className="size-3 shrink-0" />}
-          {subtitle ? (
-            <span className="truncate">{subtitle}</span>
-          ) : (
-            <span className="truncate">{formatRelativeTime(item.watchedAt)}</span>
-          )}
+          {subtitle && <span className="truncate">{subtitle}</span>}
         </div>
       </div>
 

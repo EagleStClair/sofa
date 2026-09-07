@@ -35,7 +35,7 @@ export const RecentlyWatchedItemSchema = z.object({
   seasonNumber: z.number().nullable(),
   episodeNumber: z.number().nullable(),
   episodeName: z.string().nullable(),
-  watchedAt: z.string(),
+  watchedAt: z.date(),
   userStatus: z.enum(["in_watchlist", "watching", "caught_up", "completed"]).nullable().optional(),
   episodeProgress: z.object({ watched: z.number(), total: z.number() }).nullable().optional(),
 });
