@@ -264,7 +264,7 @@ function CardInner({
       </div>
       {episodeProgress && episodeProgress.watched > 0 && (
         <>
-          <div className="absolute bottom-1.5 left-2 z-10 rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+          <div className="absolute start-2 top-2 z-10 rounded-full bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
             {episodeProgress.watched}/{episodeProgress.total}
           </div>
           <ProgressBar watched={episodeProgress.watched} total={episodeProgress.total} />
