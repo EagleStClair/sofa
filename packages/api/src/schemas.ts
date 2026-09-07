@@ -24,21 +24,23 @@ export const RecentlyWatchedInput = z.object({
   limit: z.number().min(1).max(50).default(10),
 });
 
-export const RecentlyWatchedOutput = z.array(
-  z.object({
-    id: z.string(),
-    tmdbId: z.number(),
-    title: z.string(),
-    type: z.string(),
-    posterPath: z.string().nullable(),
-    posterThumbHash: z.string().nullable().optional(),
-    releaseDate: z.string().nullable().optional(),
-    firstAirDate: z.string().nullable().optional(),
-    voteAverage: z.number().nullable().optional(),
-    userStatus: z.enum(["in_watchlist", "watching", "caught_up", "completed"]).nullable().optional(),
-    episodeProgress: z.object({ watched: z.number(), total: z.number() }).nullable().optional(),
-  }),
-);
+export const RecentlyWatchedItemSchema = z.object({
+  episodeId: z.string().nullable(),
+  titleId: z.string(),
+  tmdbId: z.number(),
+  titleName: z.string(),
+  titleType: z.enum(["movie", "tv"]),
+  posterPath: z.string().nullable(),
+  posterThumbHash: z.string().nullable(),
+  seasonNumber: z.number().nullable(),
+  episodeNumber: z.number().nullable(),
+  episodeName: z.string().nullable(),
+  watchedAt: z.string(),
+  userStatus: z.enum(["in_watchlist", "watching", "caught_up", "completed"]).nullable().optional(),
+  episodeProgress: z.object({ watched: z.number(), total: z.number() }).nullable().optional(),
+});
+
+export const RecentlyWatchedOutput = z.array(RecentlyWatchedItemSchema);
 // ─── Pagination ──────────────────────────────────────────────
 
 /** Page param for TMDB-backed endpoints (fixed ~20 items/page from TMDB) */

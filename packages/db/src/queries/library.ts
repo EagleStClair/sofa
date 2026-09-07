@@ -344,51 +344,51 @@ export function getLibraryGenres(userId: string) {
 }
 
 export function getRecentlyWatched(userId: string, limit: number) {
-  const movieWatchTitles = db
+  const movieRows = db
     .select({
-      titleId: userMovieWatches.titleId,
+      episodeId: sql<string | null>`NULL`,
+      titleId: titles.id,
+      tmdbId: titles.tmdbId,
+      titleName: titles.title,
+      titleType: titles.type,
+      posterPath: titles.posterPath,
+      posterThumbHash: titles.posterThumbHash,
+      seasonNumber: sql<number | null>`NULL`,
+      episodeNumber: sql<number | null>`NULL`,
+      episodeName: sql<string | null>`NULL`,
       watchedAt: userMovieWatches.watchedAt,
     })
     .from(userMovieWatches)
-    .where(eq(userMovieWatches.userId, userId));
+    .innerJoin(titles, eq(titles.id, userMovieWatches.titleId))
+    .where(eq(userMovieWatches.userId, userId))
+    .orderBy(desc(userMovieWatches.watchedAt))
+    .limit(limit)
+    .all();
 
-  const episodeWatchTitles = db
+  const episodeRows = db
     .select({
-      titleId: seasons.titleId,
+      episodeId: episodes.id,
+      titleId: titles.id,
+      tmdbId: titles.tmdbId,
+      titleName: titles.title,
+      titleType: titles.type,
+      posterPath: titles.posterPath,
+      posterThumbHash: titles.posterThumbHash,
+      seasonNumber: seasons.seasonNumber,
+      episodeNumber: episodes.episodeNumber,
+      episodeName: episodes.name,
       watchedAt: userEpisodeWatches.watchedAt,
     })
     .from(userEpisodeWatches)
     .innerJoin(episodes, eq(episodes.id, userEpisodeWatches.episodeId))
     .innerJoin(seasons, eq(seasons.id, episodes.seasonId))
-    .where(eq(userEpisodeWatches.userId, userId));
-
-  const allWatches = unionAll(movieWatchTitles, episodeWatchTitles).as("allWatches");
-
-  const recentTitleIds = db
-    .select({
-      titleId: allWatches.titleId,
-      lastWatchedAt: sql<number>`MAX(${allWatches.watchedAt})`.as("lastWatchedAt"),
-    })
-    .from(allWatches)
-    .groupBy(allWatches.titleId)
-    .orderBy(sql`MAX(${allWatches.watchedAt}) DESC`)
+    .innerJoin(titles, eq(titles.id, seasons.titleId))
+    .where(eq(userEpisodeWatches.userId, userId))
+    .orderBy(desc(userEpisodeWatches.watchedAt))
     .limit(limit)
-    .as("recent");
-
-  return db
-    .select({
-      titleId: titles.id,
-      tmdbId: titles.tmdbId,
-      title: titles.title,
-      type: titles.type,
-      posterPath: titles.posterPath,
-      posterThumbHash: titles.posterThumbHash,
-      releaseDate: titles.releaseDate,
-      firstAirDate: titles.firstAirDate,
-      voteAverage: titles.voteAverage,
-    })
-    .from(recentTitleIds)
-    .innerJoin(titles, eq(titles.id, recentTitleIds.titleId))
-    .orderBy(sql`${recentTitleIds.lastWatchedAt} DESC`)
     .all();
+
+  return [...movieRows, ...episodeRows]
+    .sort((a, b) => b.watchedAt.getTime() - a.watchedAt.getTime())
+    .slice(0, limit);
 }
