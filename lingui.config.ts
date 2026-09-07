@@ -7,7 +7,7 @@ export default defineConfig({
   catalogs: [
     {
       path: "<rootDir>/packages/i18n/src/po/{locale}",
-      include: ["<rootDir>/apps/web/src"],
+      include: ["<rootDir>/apps/web/src", "<rootDir>/packages/i18n/src"],
     },
   ],
   format: formatter({
