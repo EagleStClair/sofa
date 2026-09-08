@@ -20,7 +20,7 @@ const upcomingSearchSchema = z.object({
 
 export const Route = createFileRoute("/_app/upcoming")({
   validateSearch: zodValidator(upcomingSearchSchema),
-  staleTime: 30_000,
+  staleTime: 300_000,
   loader: async ({ context }) => {
     await context.queryClient.ensureInfiniteQueryData(
       orpc.library.upcoming.infiniteOptions({

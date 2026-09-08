@@ -7,7 +7,7 @@ import { getAppErrorCode } from "@/lib/error-messages";
 import { orpc } from "@/lib/orpc/client";
 
 export const Route = createFileRoute("/_app/people/$id")({
-  staleTime: 60_000,
+  staleTime: 86_400_000,
   loader: async ({ params, context }) => {
     try {
       const data = await context.queryClient.ensureInfiniteQueryData(

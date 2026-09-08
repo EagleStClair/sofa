@@ -99,8 +99,8 @@ export async function triggerJob(name: string): Promise<boolean> {
 async function nightlyRefreshLibrary() {
   const libraryIds = getLibraryTitleIds();
   log.debug(`Checking ${libraryIds.length} library titles for staleness`);
-  const libraryStale = new Date(Date.now() - 7 * DAY);
-  const nonLibraryStale = new Date(Date.now() - 30 * DAY);
+  const libraryStale = new Date(Date.now() - 14 * DAY);
+  const nonLibraryStale = new Date(Date.now() - 90 * DAY);
 
   // Library titles: 7 days
   const staleLibrary = getStaleLibraryTitles(libraryIds, libraryStale);
@@ -139,7 +139,7 @@ async function refreshAvailabilityJob() {
 
 async function refreshRecommendationsJob() {
   const libraryIds = getLibraryTitleIds();
-  const stale = new Date(Date.now() - 7 * DAY);
+  const stale = new Date(Date.now() - 30 * DAY);
   const fresh = getTitlesWithFreshRecommendations(libraryIds, stale);
   const staleIds = libraryIds.filter((id) => !fresh.has(id));
   log.debug(
@@ -153,7 +153,7 @@ async function refreshRecommendationsJob() {
 }
 
 async function refreshTvChildrenJob() {
-  const stale = new Date(Date.now() - 7 * DAY);
+  const stale = new Date(Date.now() - 14 * DAY);
 
   const tvShows = getReturningTvShows();
 
@@ -218,7 +218,7 @@ async function cacheImagesJob() {
 async function refreshCreditsJob() {
   const libraryIds = getLibraryTitleIds();
   log.debug(`Checking credits for ${libraryIds.length} library titles`);
-  const stale = new Date(Date.now() - 30 * DAY);
+  const stale = new Date(Date.now() - 90 * DAY);
 
   for (const titleId of libraryIds) {
     const castEntry = getCastEntryForTitle(titleId);

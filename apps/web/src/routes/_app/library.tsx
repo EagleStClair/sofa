@@ -32,7 +32,7 @@ type LibrarySearch = z.infer<typeof librarySearchSchema>;
 
 export const Route = createFileRoute("/_app/library")({
   validateSearch: zodValidator(librarySearchSchema),
-  staleTime: 30_000,
+  staleTime: 120_000,
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureInfiniteQueryData(
