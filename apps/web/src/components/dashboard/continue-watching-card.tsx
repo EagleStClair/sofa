@@ -94,7 +94,7 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{item.title.title}</p>
           <p className="text-muted-foreground text-xs">
-            {t`${watchedEpisodes}/${plural(totalEpisodes, { one: "# episode", other: "# episodes" })}`}
+            {t`${plural(totalEpisodes - watchedEpisodes, { one: "# episode", other: "# episodes" })} behind`}
           </p>
         </div>
       </div>
