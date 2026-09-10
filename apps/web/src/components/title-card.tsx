@@ -164,6 +164,7 @@ function CardInner({
   posterThumbHash,
   releaseDate,
   voteAverage,
+  runtimeMinutes,
   userStatus,
   episodeProgress,
   tiltStyles,
@@ -287,6 +288,7 @@ export function TitleCard({
   posterThumbHash,
   releaseDate,
   voteAverage,
+  runtimeMinutes,
   userStatus,
   episodeProgress,
 }: TitleCardProps) {
@@ -308,6 +310,7 @@ export function TitleCard({
         posterThumbHash={posterThumbHash}
         releaseDate={releaseDate}
         voteAverage={voteAverage}
+        runtimeMinutes={runtimeMinutes}
         userStatus={userStatus}
         episodeProgress={episodeProgress}
         tiltStyles={{

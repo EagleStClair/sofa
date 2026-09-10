@@ -50,6 +50,7 @@ export function TitleGrid({ items }: { items: TitleGridItem[] }) {
             posterThumbHash={t.posterThumbHash}
             releaseDate={t.releaseDate ?? t.firstAirDate}
             voteAverage={t.voteAverage}
+            runtimeMinutes={t.runtimeMinutes}
             userStatus={t.userStatus}
             episodeProgress={t.episodeProgress}
           />
