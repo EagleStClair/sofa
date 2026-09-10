@@ -35,6 +35,7 @@ export const list = os.library.list.use(authed).handler(({ input, context }) => 
       releaseDate: item.releaseDate ?? null,
       firstAirDate: item.firstAirDate ?? null,
       voteAverage: item.voteAverage,
+      runtimeMinutes: item.runtimeMinutes,
       userStatus: item.userStatus,
       userRating: item.userRating,
     })),
