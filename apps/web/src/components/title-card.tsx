@@ -168,7 +168,6 @@ function CardInner({
   userStatus,
   episodeProgress,
   tiltStyles,
-  runtimeMinutes,
 }: CardInnerProps) {
   const statusConfig = useStatusConfig();
   const year = releaseDate?.slice(0, 4);
