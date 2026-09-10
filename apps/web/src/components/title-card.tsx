@@ -51,6 +51,7 @@ interface CardInnerProps {
   userStatus?: TitleStatus | null;
   episodeProgress?: { watched: number; total: number } | null;
   tiltStyles?: TiltStyles;
+  runtimeMinutes?: number | null;
 }
 
 export interface TitleCardProps extends CardInnerProps {
@@ -166,6 +167,7 @@ function CardInner({
   userStatus,
   episodeProgress,
   tiltStyles,
+  runtimeMinutes,
 }: CardInnerProps) {
   const statusConfig = useStatusConfig();
   const year = releaseDate?.slice(0, 4);
@@ -254,6 +256,9 @@ function CardInner({
         <div className="text-muted-foreground mt-1.5 flex items-center gap-2 text-xs">
           <TypeIcon aria-hidden={true} className="text-primary/60 size-3.5 shrink-0" />
           {year && <span>{year}</span>}
+          {type === "movie" && runtimeMinutes != null && runtimeMinutes > 0 && (
+            <span>• {runtimeMinutes} min</span>
+          )}
           {voteAverage != null && voteAverage > 0 && (
             <span className="text-primary/80 ml-auto flex items-center gap-0.5">
               <IconStarFilled aria-hidden={true} className="size-[11px]" />

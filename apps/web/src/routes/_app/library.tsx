@@ -31,7 +31,7 @@ const librarySearchSchema = z.object({
 type LibrarySearch = z.infer<typeof librarySearchSchema>;
 
 export const Route = createFileRoute("/_app/library")({
-  validateSearch: zodValidator(librarySearchSchema),
+  validateSearch: zodValidator(librarySearchSchema.default({ statuses: ["in_watchlist"] })),
   staleTime: 120_000,
   loader: async ({ context }) => {
     await Promise.all([

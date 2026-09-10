@@ -651,6 +651,7 @@ export const LibraryListOutput = z
           releaseDate: z.string().nullable().describe("Release date (ISO 8601)"),
           firstAirDate: z.string().nullable().describe("First air date (ISO 8601)"),
           voteAverage: z.number().nullable().describe("Average rating (0-10)"),
+          runtimeMinutes: z.number().nullable().describe("Runtime in minutes (movies only)"),
           userStatus: displayStatusEnum.nullable().describe("User's display status"),
           userRating: z.number().nullable().describe("User's star rating (1-5), or null"),
         })

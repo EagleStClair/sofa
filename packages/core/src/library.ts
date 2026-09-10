@@ -26,6 +26,7 @@ export function getFilteredLibraryFeed(userId: string, filters: LibraryFilters) 
       releaseDate: item.releaseDate,
       firstAirDate: item.firstAirDate,
       voteAverage: item.voteAverage,
+      runtimeMinutes: item.runtimeMinutes,
       userStatus: displayStatuses[item.titleId] ?? null,
       userRating: item.userRating ?? null,
     })),
