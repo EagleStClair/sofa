@@ -14,7 +14,7 @@ import { orpc } from "@/lib/orpc/client";
 
 const librarySearchSchema = z.object({
   search: z.string().optional().catch(undefined),
-  statuses: z.array(z.string()).optional().catch(undefined),
+  statuses: z.array(z.string()).optional().catch(undefined).default(["in_watchlist"]),
   type: z.enum(["movie", "tv"]).optional().catch(undefined),
   genreId: z.number().optional().catch(undefined),
   ratingMin: z.number().optional().catch(undefined),
@@ -31,7 +31,7 @@ const librarySearchSchema = z.object({
 type LibrarySearch = z.infer<typeof librarySearchSchema>;
 
 export const Route = createFileRoute("/_app/library")({
-  validateSearch: zodValidator(librarySearchSchema.default({ statuses: ["in_watchlist"] })),
+  validateSearch: zodValidator(librarySearchSchema),
   staleTime: 120_000,
   loader: async ({ context }) => {
     await Promise.all([
