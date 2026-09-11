@@ -4,6 +4,8 @@ import { createLogger } from "@sofa/logger";
 
 import type { operations, paths } from "./schema";
 
+import { WATCH_REGION } from "@sofa/config";
+
 const log = createLogger("tmdb");
 
 // ─── Schema-derived types ───────────────────────────────────────────
@@ -247,15 +249,16 @@ export async function getTvSeasonDetails(tmdbId: number, seasonNumber: number) {
 // ─── Watch Providers ────────────────────────────────────────────────
 
 export async function getWatchProviders(tmdbId: number, type: "movie" | "tv") {
+  const query = { watch_region: WATCH_REGION };
   if (type === "movie") {
     const { data, error } = await client.GET("/3/movie/{movie_id}/watch/providers", {
-      params: { path: { movie_id: tmdbId } },
+      params: { path: { movie_id: tmdbId }, query },
     });
     if (error) throw new Error(`TMDB API error: movie/${tmdbId}/watch/providers`);
     return data as TmdbWatchProviderResponse;
   }
   const { data, error } = await client.GET("/3/tv/{series_id}/watch/providers", {
-    params: { path: { series_id: tmdbId } },
+    params: { path: { series_id: tmdbId }, query },
   });
   if (error) throw new Error(`TMDB API error: tv/${tmdbId}/watch/providers`);
   return data as TmdbWatchProviderResponse;
@@ -269,7 +272,8 @@ export interface TmdbWatchProviderListItem {
 }
 
 export async function getWatchProviderList(type: "movie" | "tv", watchRegion?: string) {
-  const query = watchRegion ? ({ watch_region: watchRegion } as Record<string, unknown>) : {};
+  const region = watchRegion ?? WATCH_REGION;
+  const query = { watch_region: region };
   if (type === "movie") {
     const { data, error } = await client.GET("/3/watch/providers/movie", {
       params: { query },
