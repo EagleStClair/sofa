@@ -18,16 +18,29 @@ const upcomingSearchSchema = z.object({
   status: z.enum(["all", "watching", "watchlist"]).optional().catch(undefined),
 });
 
+type UpcomingSearch = z.infer<typeof upcomingSearchSchema>;
+
+function buildUpcomingFilterInput(search: UpcomingSearch) {
+  const typeFilter = search.type ?? "all";
+  const statusFilter = search.status ?? "all";
+  return {
+    mediaType: typeFilter !== "all" ? (typeFilter as "movie" | "tv") : undefined,
+    statusFilter: statusFilter !== "all" ? [statusFilter as "watching" | "watchlist"] : undefined,
+  };
+}
+
 export const Route = createFileRoute("/_app/upcoming")({
   validateSearch: zodValidator(upcomingSearchSchema),
   staleTime: 300_000,
-  loader: async ({ context }) => {
+  loaderDeps: ({ search }) => buildUpcomingFilterInput(search),
+  loader: async ({ context, deps }) => {
     await context.queryClient.ensureInfiniteQueryData(
       orpc.library.upcoming.infiniteOptions({
         input: (pageParam: string | undefined) => ({
           days: 90,
           limit: 20,
           cursor: pageParam,
+          ...deps,
         }),
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -65,9 +78,9 @@ function UpcomingPage() {
   const { t } = useLingui();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-
   const typeFilter = search.type ?? "all";
   const statusFilter = search.status ?? "all";
+  const filterInput = buildUpcomingFilterInput(search);
 
   const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
     orpc.library.upcoming.infiniteOptions({
@@ -75,9 +88,7 @@ function UpcomingPage() {
         days: 90,
         limit: 20,
         cursor: pageParam,
-        mediaType: typeFilter !== "all" ? (typeFilter as "movie" | "tv") : undefined,
-        statusFilter:
-          statusFilter !== "all" ? [statusFilter as "watching" | "watchlist"] : undefined,
+        ...filterInput,
       }),
       initialPageParam: undefined as string | undefined,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,

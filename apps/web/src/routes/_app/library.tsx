@@ -30,14 +30,33 @@ const librarySearchSchema = z.object({
 
 type LibrarySearch = z.infer<typeof librarySearchSchema>;
 
+function buildLibraryQueryInput(search: LibrarySearch) {
+  const input: Record<string, unknown> = {};
+  if (search.search) input.search = search.search;
+  if (search.statuses?.length) input.statuses = search.statuses;
+  if (search.type) input.type = search.type;
+  if (search.genreId) input.genreId = search.genreId;
+  if (search.ratingMin) input.ratingMin = search.ratingMin;
+  if (search.ratingMax) input.ratingMax = search.ratingMax;
+  if (search.yearMin) input.yearMin = search.yearMin;
+  if (search.yearMax) input.yearMax = search.yearMax;
+  if (search.contentRating) input.contentRating = search.contentRating;
+  if (search.onMyServices) input.onMyServices = true;
+  if (search.rentBuyAvailable) input.rentBuyAvailable = true;
+  if (search.sortBy) input.sortBy = search.sortBy;
+  if (search.sortDirection) input.sortDirection = search.sortDirection;
+  return input;
+}
+
 export const Route = createFileRoute("/_app/library")({
   validateSearch: zodValidator(librarySearchSchema),
   staleTime: 120_000,
-  loader: async ({ context }) => {
+  loaderDeps: ({ search }) => buildLibraryQueryInput(search),
+  loader: async ({ context, deps }) => {
     await Promise.all([
       context.queryClient.ensureInfiniteQueryData(
         orpc.library.list.infiniteOptions({
-          input: (pageParam: number) => ({ page: pageParam }),
+          input: (pageParam: number) => ({ ...deps, page: pageParam }),
           initialPageParam: 1,
           getNextPageParam: (lastPage) =>
             lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
@@ -91,11 +110,7 @@ function LibraryPage() {
           const next = { ...prev, ...updates };
           // Remove undefined/empty values
           for (const [key, value] of Object.entries(next)) {
-            if (
-              value === undefined ||
-              value === "" ||
-              (Array.isArray(value) && value.length === 0)
-            ) {
+            if (value === undefined || value === "") {
               delete (next as Record<string, unknown>)[key];
             }
           }
@@ -131,24 +146,8 @@ function LibraryPage() {
     [updateSearch],
   );
 
-  // Build input from search params
-  const queryInput = useMemo(() => {
-    const input: Record<string, unknown> = {};
-    if (search.search) input.search = search.search;
-    if (search.statuses?.length) input.statuses = search.statuses;
-    if (search.type) input.type = search.type;
-    if (search.genreId) input.genreId = search.genreId;
-    if (search.ratingMin) input.ratingMin = search.ratingMin;
-    if (search.ratingMax) input.ratingMax = search.ratingMax;
-    if (search.yearMin) input.yearMin = search.yearMin;
-    if (search.yearMax) input.yearMax = search.yearMax;
-    if (search.contentRating) input.contentRating = search.contentRating;
-    if (search.onMyServices) input.onMyServices = true;
-    if (search.rentBuyAvailable) input.rentBuyAvailable = true;
-    if (search.sortBy) input.sortBy = search.sortBy;
-    if (search.sortDirection) input.sortDirection = search.sortDirection;
-    return input;
-  }, [search]);
+  // Build input from search params (shared with the loader's prefetch)
+  const queryInput = useMemo(() => buildLibraryQueryInput(search), [search]);
 
   const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
     orpc.library.list.infiniteOptions({

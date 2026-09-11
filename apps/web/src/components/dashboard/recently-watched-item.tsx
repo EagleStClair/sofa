@@ -1,4 +1,3 @@
-import { plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
 import { IconMovie } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
@@ -52,12 +51,6 @@ export function RecentlyWatchedRow({ item }: { item: RecentlyWatchedItem }) {
 
       <div className="flex shrink-0 flex-col items-end gap-1 text-right">
         <span className="text-muted-foreground text-xs">{formatRelativeTime(item.watchedAt)}</span>
-        {item.episodeProgress && item.episodeProgress.watched > 0 && (
-          <span className="text-muted-foreground/80 text-xs">
-            {item.episodeProgress.watched}/
-            {plural(item.episodeProgress.total, { one: "# episode", other: "# episodes" })}
-          </span>
-        )}
       </div>
     </Link>
   );

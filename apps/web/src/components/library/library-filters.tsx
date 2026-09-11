@@ -93,7 +93,7 @@ export function LibraryFilters({
     const next = current.includes(status)
       ? current.filter((s) => s !== status)
       : [...current, status];
-    onFilterChange("statuses", next.length > 0 ? next : undefined);
+    onFilterChange("statuses", next);
   }
 
   // Status dropdown label
