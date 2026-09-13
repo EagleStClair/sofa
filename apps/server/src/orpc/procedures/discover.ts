@@ -335,12 +335,12 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
   if (input.ratingMin != null) params["vote_average.gte"] = String(input.ratingMin);
   if (input.language) params.with_original_language = input.language;
   if (input.platformIds && input.platformIds.length > 0) {
-  const tmdbIds = input.platformIds.flatMap((id) => getPlatformTmdbIds(id));
-  if (tmdbIds.length > 0) {
-    params.with_watch_providers = tmdbIds.join("|");
-    params.watch_region = WATCH_REGION;
+    const tmdbIds = input.platformIds.flatMap((id) => getPlatformTmdbIds(id));
+    if (tmdbIds.length > 0) {
+      params.with_watch_providers = tmdbIds.join("|");
+      params.watch_region = WATCH_REGION;
+    }
   }
-}
 
   const results = await discoverTmdb(input.type, params, input.page);
 

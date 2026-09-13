@@ -105,8 +105,8 @@ export function DiscoverSection() {
   const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data?.pages]);
 
   const userStatuses = useMemo(
-  () => Object.assign({}, ...(data?.pages.map((p) => p.userStatuses) ?? [])),
-  [data?.pages],
+    () => Object.assign({}, ...(data?.pages.map((p) => p.userStatuses) ?? [])),
+    [data?.pages],
   );
   const visibleItems = useMemo(
     () => (hideSeen ? items.filter((item) => userStatuses[item.id] !== "completed") : items),
