@@ -217,6 +217,14 @@ export async function getMovieDetails(tmdbId: number) {
   return data as TmdbMovieDetails;
 }
 
+export async function getMovieExternalIds(tmdbId: number) {
+  const { data, error } = await client.GET("/3/movie/{movie_id}/external_ids", {
+    params: { path: { movie_id: tmdbId } },
+  });
+  if (error) throw new Error(`TMDB API error: movie/${tmdbId}/external_ids`);
+  return data;
+}
+
 export async function getTvDetails(tmdbId: number) {
   const { data, error } = await client.GET("/3/tv/{series_id}", {
     params: {

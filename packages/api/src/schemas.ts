@@ -140,7 +140,7 @@ export const DiscoverInput = z
       .regex(/^[a-z]{2}$/)
       .optional()
       .describe("ISO 639-1 original language code"),
-    platformId: z.string().optional().describe("Platform ID to filter by"),
+    platformIds: z.array(z.string()).optional().describe("Platform IDs to filter by"),
   })
   .merge(PageParam)
   .meta({ description: "Genre-based discovery filters" });

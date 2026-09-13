@@ -19,6 +19,9 @@ import {
 } from "@sofa/tmdb/client";
 import { isTmdbConfigured } from "@sofa/tmdb/config";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
+import { getMovieExternalIds } from "@sofa/tmdb/client";
+import { updateTitleImdbId } from "@sofa/core/metadata";
+import { getImdbRatingsByTitleIds } from "@sofa/core/metadata";
 
 import { os } from "../context";
 import { authed } from "../middleware";

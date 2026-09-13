@@ -67,7 +67,7 @@ export function DiscoverSection() {
     | "primary_release_date.asc";
   const [sortBy, setSortBy] = useState<DiscoverSortBy | undefined>(undefined);
   const [language, setLanguage] = useState<string | undefined>(undefined);
-  const [platformId, setPlatformId] = useState<string | undefined>(undefined);
+  const [platformIds, setPlatformIds] = useState<string[]>([]);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
@@ -102,6 +102,8 @@ export function DiscoverSection() {
 
   const genres = genreData?.genres ?? [];
   const providers = providerData?.platforms ?? [];
+
+  const { data: myPlatforms } = useQuery(orpc.account.platforms.queryOptions());
 
   const sortLabels: Record<string, string> = {
     "popularity.desc": t`Most popular`,
@@ -337,36 +339,18 @@ export function DiscoverSection() {
         </Select>
 
         {/* Provider select */}
-        <Select
-          value={platformId ?? ""}
-          onValueChange={handleProviderChange}
-          modal={false}
-          aria-label={t`Provider`}
-        >
-          <SelectTrigger
-            size="sm"
-            data-active={platformId ? "" : undefined}
-            className="data-[active]:border-primary/40 data-[active]:text-foreground"
-          >
-            <SelectValue>
-              {(value: string | null) => {
-                if (!value) return t`Provider`;
-                const platform = providers.find((p) => p.id === value);
-                return platform?.name ?? t`Provider`;
-              }}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="p-1">
-            <SelectItem value="">{t`All providers`}</SelectItem>
-            {providers
-              .filter((p) => p.tmdbProviderIds.length > 0)
-              .map((platform) => (
-                <SelectItem key={platform.id} value={platform.id}>
-                  {platform.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
+        <ToggleGroup value={platformIds} onValueChange={setPlatformIds} variant="outline" size="sm">
+          {providers.map((p) => (
+            <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+
+        <Button variant={usingMyServices ? "default" : "outline"} size="sm" onClick={() => {
+          setPlatformIds(myPlatforms?.platformIds ?? []);
+        }}>
+          {t`My services`}
+        </Button>
+
       </div>
 
       {/* Results */}
