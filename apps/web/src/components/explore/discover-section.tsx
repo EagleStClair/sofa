@@ -70,6 +70,7 @@ export function DiscoverSection() {
   const [language, setLanguage] = useState<string | undefined>(undefined);
   const [platformIds, setPlatformIds] = useState<string[]>([]);
   const [usingMyServices, setUsingMyServices] = useState(false);
+  const [hideSeen, setHideSeen] = useState(true);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
@@ -101,6 +102,15 @@ export function DiscoverSection() {
   });
 
   const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data?.pages]);
+
+  const userStatuses = useMemo(
+  () => Object.assign({}, ...(data?.pages.map((p) => p.userStatuses) ?? [])),
+  [data?.pages],
+);
+const visibleItems = useMemo(
+  () => (hideSeen ? items.filter((item) => userStatuses[item.id] !== "completed") : items),
+  [items, userStatuses, hideSeen],
+);
 
   const genres = genreData?.genres ?? [];
   const providers = providerData?.platforms ?? [];
@@ -362,6 +372,14 @@ export function DiscoverSection() {
           {t`My services`}
         </Button>
 
+        <Button
+          variant={hideSeen ? "default" : "outline"}
+          size="sm"
+          onClick={() => setHideSeen((v) => !v)}
+        >
+          {t`Hide seen`}
+        </Button>
+
       </div>
 
       {/* Results */}
@@ -375,7 +393,7 @@ export function DiscoverSection() {
         </p>
       ) : (
         <>
-          <TitleGrid items={items} />
+          <TitleGrid items={visibleItems} />
           <div ref={sentinelRef} />
           {isFetchingNextPage && (
             <div className="flex items-center justify-center py-4">
