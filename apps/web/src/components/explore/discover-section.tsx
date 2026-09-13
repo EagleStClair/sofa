@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { FeedSection } from "@/components/dashboard/feed-section";
 import { TitleGrid } from "@/components/dashboard/title-grid";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,7 +16,6 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
-import { Button } from "@/components/ui/button";
 
 const DECADE_PRESETS = [
   { label: "2020s", min: 2020, max: 2029 },
@@ -74,6 +74,7 @@ export function DiscoverSection() {
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
+  const { data: myPlatforms } = useQuery(orpc.account.platforms.queryOptions());
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } = useInfiniteQuery(
     orpc.discover.browse.infiniteOptions({
@@ -106,16 +107,14 @@ export function DiscoverSection() {
   const userStatuses = useMemo(
   () => Object.assign({}, ...(data?.pages.map((p) => p.userStatuses) ?? [])),
   [data?.pages],
-);
-const visibleItems = useMemo(
-  () => (hideSeen ? items.filter((item) => userStatuses[item.id] !== "completed") : items),
-  [items, userStatuses, hideSeen],
-);
+  );
+  const visibleItems = useMemo(
+    () => (hideSeen ? items.filter((item) => userStatuses[item.id] !== "completed") : items),
+    [items, userStatuses, hideSeen],
+  );
 
   const genres = genreData?.genres ?? [];
   const providers = providerData?.platforms ?? [];
-
-  const { data: myPlatforms } = useQuery(orpc.account.platforms.queryOptions());
 
   const sortLabels: Record<string, string> = {
     "popularity.desc": t`Most popular`,
@@ -185,7 +184,7 @@ const visibleItems = useMemo(
             if (next === "movie" || next === "tv") {
               setType(next);
               setGenreId(undefined);
-              setPlatformId(undefined);
+              setPlatformIds([]);
             }
           }}
           variant="outline"
@@ -356,9 +355,11 @@ const visibleItems = useMemo(
           variant="outline"
           size="sm"
         >
-          {providers.map((p) => (
-            <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
-          ))}
+          {providers
+            .filter((p) => p.tmdbProviderIds.length > 0)
+            .map((p) => (
+              <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
+            ))}
         </ToggleGroup>
 
         <Button
