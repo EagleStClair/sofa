@@ -20,8 +20,7 @@ import {
 import { isTmdbConfigured } from "@sofa/tmdb/config";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
 import { getMovieExternalIds } from "@sofa/tmdb/client";
-import { updateTitleImdbId } from "@sofa/core/metadata";
-import { getImdbRatingsByTitleIds } from "@sofa/core/metadata";
+import { getImdbRatingsByTitleIds, getTitleImdbIds, updateTitleImdbId } from "@sofa/core/metadata";
 
 import { os } from "../context";
 import { authed } from "../middleware";
@@ -335,13 +334,13 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
   }
   if (input.ratingMin != null) params["vote_average.gte"] = String(input.ratingMin);
   if (input.language) params.with_original_language = input.language;
-  if (input.platformId) {
-    const tmdbIds = getPlatformTmdbIds(input.platformId);
-    if (tmdbIds.length > 0) {
-      params.with_watch_providers = tmdbIds.join("|");
-      params.watch_region = WATCH_REGION;
-    }
+  if (input.platformIds && input.platformIds.length > 0) {
+  const tmdbIds = input.platformIds.flatMap((id) => getPlatformTmdbIds(id));
+  if (tmdbIds.length > 0) {
+    params.with_watch_providers = tmdbIds.join("|");
+    params.watch_region = WATCH_REGION;
   }
+}
 
   const results = await discoverTmdb(input.type, params, input.page);
 
@@ -364,17 +363,39 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
       voteAverage: r.vote_average ?? null,
     }));
 
-  const titleMap = ensureBrowseTitlesExist(baseItems);
-  const items = baseItems.map((item) => {
-    const entry = titleMap.get(`${item.tmdbId}-${item.type}`);
-    return Object.assign(item, {
-      id: entry?.id ?? "",
-      posterPath: tmdbImageUrl(item.posterPath, "posters"),
-      posterThumbHash: entry?.posterThumbHash ?? null,
-    });
+const titleMap = ensureBrowseTitlesExist(baseItems);
+const items = baseItems.map((item) => {
+  const entry = titleMap.get(`${item.tmdbId}-${item.type}`);
+  return Object.assign(item, {
+    id: entry?.id ?? "",
+    posterPath: tmdbImageUrl(item.posterPath, "posters"),
+    posterThumbHash: entry?.posterThumbHash ?? null,
   });
+});
 
-  const titleIds = items.map((r) => r.id);
+const titleIds = items.map((r) => r.id).filter((id) => id !== "");
+
+if (input.type === "movie" && titleIds.length > 0) {
+  const imdbIds = getTitleImdbIds(titleIds);
+  await Promise.all(
+    items
+      .filter((item) => item.id && !imdbIds[item.id])
+      .map(async (item) => {
+        try {
+          const externalIds = await getMovieExternalIds(item.tmdbId);
+          if (externalIds.imdb_id) updateTitleImdbId(item.id, externalIds.imdb_id);
+        } catch {
+          // best-effort — TMDB's own rating stays as the fallback if this fails
+        }
+      }),
+  );
+}
+
+const imdbRatings = titleIds.length > 0 ? getImdbRatingsByTitleIds(titleIds) : {};
+for (const item of items) {
+  const rating = imdbRatings[item.id];
+  if (rating != null) item.voteAverage = rating;
+}
   const [userStatuses, episodeProgress] =
     titleIds.length > 0
       ? [

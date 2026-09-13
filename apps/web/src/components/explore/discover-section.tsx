@@ -82,7 +82,7 @@ export function DiscoverSection() {
         ratingMin,
         sortBy,
         language,
-        platformId,
+        platformIds,
         page: pageParam,
       }),
       initialPageParam: 1,
@@ -152,10 +152,6 @@ export function DiscoverSection() {
 
   function handleLanguageChange(value: string | null) {
     setLanguage(value || undefined);
-  }
-
-  function handleProviderChange(value: string | null) {
-    setPlatformId(value || undefined);
   }
 
   function handleGenreChange(value: string | null) {

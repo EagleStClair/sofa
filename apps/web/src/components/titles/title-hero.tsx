@@ -164,6 +164,12 @@ export function TitleHero({
                   {title.voteAverage.toFixed(1)}
                 </span>
               )}
+              {title.imdbRating != null && title.imdbRating > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="text-[10px] font-semibold tracking-wide opacity-70">IMDb</span>
+                  {title.imdbRating.toFixed(1)}
+                </span>
+              )}
               {title.status &&
                 !(title.type === "movie" && title.status === "Released") &&
                 !(title.type === "tv" && title.status === "Returning Series") && (
