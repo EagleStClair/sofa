@@ -90,6 +90,36 @@ export function getTitleGenres(titleId: string) {
     .all();
 }
 
+// ─── Imdb ─────────────────────────────────────────────────────────
+
+export function getTitleImdbIds(titleIds: string[]): Record<string, string | null> {
+  if (titleIds.length === 0) return {};
+  const rows = db
+                .select({ id: titles.id, imdbId: titles.imdbId })
+                .from(titles)
+                .where(inArray(titles.id, titleIds))
+                .all();
+  return Object.fromEntries(rows.map((r) => [r.id, r.imdbId]));
+}
+
+export function updateTitleImdbId(id: string, imdbId: string) {
+  db
+    .update(titles)
+    .set({ imdbId })
+    .where(eq(titles.id, id))
+    .run();
+}
+
+export function getImdbRatingsByTitleIds(titleIds: string[]): Record<string, number | null> {
+  if (titleIds.length === 0) return {};
+  const rows = db
+                .select({ id: titles.id, imdbRating: titles.imdbRating })
+                .from(titles)
+                .where(inArray(titles.id, titleIds))
+                .all();
+  return Object.fromEntries(rows.map((r) => [r.id, r.imdbRating]));
+}
+
 // ─── Seasons ─────────────────────────────────────────────────────────
 
 export function hasSeasonForTitle(titleId: string) {

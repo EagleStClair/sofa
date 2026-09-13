@@ -35,6 +35,7 @@ import { getSetting } from "@sofa/core/settings";
 import { generateTitleBackdropThumbHash, generateTitlePosterThumbHash } from "@sofa/core/thumbhash";
 import { createLogger } from "@sofa/logger";
 import { getTvDetails } from "@sofa/tmdb/client";
+import { refreshImdbRatings } from "@sofa/core/imdb-ratings";
 
 export type BackupFrequency = "6h" | "12h" | "1d" | "7d";
 
@@ -297,6 +298,7 @@ export function startJobs() {
   schedule("refreshTvChildren", "30 */12 * * *", refreshTvChildrenJob);
   schedule("cacheImages", "0 1,13 * * *", cacheImagesJob);
   schedule("refreshCredits", "0 2 * * *", refreshCreditsJob);
+  schedule("refreshImdbRatings", "0 5 * * *", refreshImdbRatings);
   schedule("optimizeDb", "0 4 * * 0", async () => {
     const { optimizeDatabase } = await import("@sofa/db/client");
     const { deleteOldCronRuns } = await import("@sofa/db/queries/cron");

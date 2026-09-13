@@ -111,6 +111,7 @@ export const titles = sqliteTable(
     status: text("status"),
     contentRating: text("contentRating"),
     imdbId: text("imdbId"),
+    imdbRating: real("imdbRating"),
     originalLanguage: text("originalLanguage"),
     runtimeMinutes: int("runtimeMinutes"),
     colorPalette: text("colorPalette"),

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { FeedSection } from "@/components/dashboard/feed-section";
 import { TitleGrid } from "@/components/dashboard/title-grid";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -67,10 +68,13 @@ export function DiscoverSection() {
     | "primary_release_date.asc";
   const [sortBy, setSortBy] = useState<DiscoverSortBy | undefined>(undefined);
   const [language, setLanguage] = useState<string | undefined>(undefined);
-  const [platformId, setPlatformId] = useState<string | undefined>(undefined);
+  const [platformIds, setPlatformIds] = useState<string[]>([]);
+  const [usingMyServices, setUsingMyServices] = useState(false);
+  const [hideSeen, setHideSeen] = useState(true);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
+  const { data: myPlatforms } = useQuery(orpc.account.platforms.queryOptions());
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } = useInfiniteQuery(
     orpc.discover.browse.infiniteOptions({
@@ -82,7 +86,7 @@ export function DiscoverSection() {
         ratingMin,
         sortBy,
         language,
-        platformId,
+        platformIds,
         page: pageParam,
       }),
       initialPageParam: 1,
@@ -99,6 +103,15 @@ export function DiscoverSection() {
   });
 
   const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data?.pages]);
+
+  const userStatuses = useMemo(
+    () => Object.assign({}, ...(data?.pages.map((p) => p.userStatuses) ?? [])),
+    [data?.pages],
+  );
+  const visibleItems = useMemo(
+    () => (hideSeen ? items.filter((item) => userStatuses[item.id] !== "completed") : items),
+    [items, userStatuses, hideSeen],
+  );
 
   const genres = genreData?.genres ?? [];
   const providers = providerData?.platforms ?? [];
@@ -152,10 +165,6 @@ export function DiscoverSection() {
     setLanguage(value || undefined);
   }
 
-  function handleProviderChange(value: string | null) {
-    setPlatformId(value || undefined);
-  }
-
   function handleGenreChange(value: string | null) {
     if (!value) {
       setGenreId(undefined);
@@ -175,7 +184,7 @@ export function DiscoverSection() {
             if (next === "movie" || next === "tv") {
               setType(next);
               setGenreId(undefined);
-              setPlatformId(undefined);
+              setPlatformIds([]);
             }
           }}
           variant="outline"
@@ -337,36 +346,41 @@ export function DiscoverSection() {
         </Select>
 
         {/* Provider select */}
-        <Select
-          value={platformId ?? ""}
-          onValueChange={handleProviderChange}
-          modal={false}
-          aria-label={t`Provider`}
+        <ToggleGroup
+          value={platformIds}
+          onValueChange={(values) => {
+            setPlatformIds(values);
+            setUsingMyServices(false);
+          }}
+          variant="outline"
+          size="sm"
         >
-          <SelectTrigger
-            size="sm"
-            data-active={platformId ? "" : undefined}
-            className="data-[active]:border-primary/40 data-[active]:text-foreground"
-          >
-            <SelectValue>
-              {(value: string | null) => {
-                if (!value) return t`Provider`;
-                const platform = providers.find((p) => p.id === value);
-                return platform?.name ?? t`Provider`;
-              }}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="p-1">
-            <SelectItem value="">{t`All providers`}</SelectItem>
-            {providers
-              .filter((p) => p.tmdbProviderIds.length > 0)
-              .map((platform) => (
-                <SelectItem key={platform.id} value={platform.id}>
-                  {platform.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
+          {providers
+            .filter((p) => p.tmdbProviderIds.length > 0)
+            .map((p) => (
+              <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
+            ))}
+        </ToggleGroup>
+
+        <Button
+          variant={usingMyServices ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setPlatformIds(myPlatforms?.platformIds ?? []);
+            setUsingMyServices(true);
+          }}
+        >
+          {t`My services`}
+        </Button>
+
+        <Button
+          variant={hideSeen ? "default" : "outline"}
+          size="sm"
+          onClick={() => setHideSeen((v) => !v)}
+        >
+          {t`Hide seen`}
+        </Button>
+
       </div>
 
       {/* Results */}
@@ -380,7 +394,7 @@ export function DiscoverSection() {
         </p>
       ) : (
         <>
-          <TitleGrid items={items} />
+          <TitleGrid items={visibleItems} />
           <div ref={sentinelRef} />
           {isFetchingNextPage && (
             <div className="flex items-center justify-center py-4">
