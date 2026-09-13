@@ -315,6 +315,7 @@ function BackgroundJobsCard({
     cacheImages: t`Image cache`,
     scheduledBackup: t`Backup`,
     updateCheck: t`Update check`,
+    refreshImdbRatings: t`Refresh IMDb ratings`,
   };
 
   const triggerJobMutation = useMutation(

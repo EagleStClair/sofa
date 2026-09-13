@@ -63,6 +63,7 @@ const JOB_NAMES = [
   "cacheImages",
   "scheduledBackup",
   "updateCheck",
+  "refreshImdbRatings",
 ];
 
 function getDatabaseHealth(): SystemHealthData["database"] {

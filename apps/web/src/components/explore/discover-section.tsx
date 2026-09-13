@@ -7,6 +7,12 @@ import { FeedSection } from "@/components/dashboard/feed-section";
 import { TitleGrid } from "@/components/dashboard/title-grid";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -346,21 +352,39 @@ export function DiscoverSection() {
         </Select>
 
         {/* Provider select */}
-        <ToggleGroup
-          value={platformIds}
-          onValueChange={(values) => {
-            setPlatformIds(values);
-            setUsingMyServices(false);
-          }}
-          variant="outline"
-          size="sm"
-        >
-          {providers
-            .filter((p) => p.tmdbProviderIds.length > 0)
-            .map((p) => (
-              <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
-            ))}
-        </ToggleGroup>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                size="sm"
+                data-active={platformIds.length > 0 ? "" : undefined}
+                className="data-[active]:border-primary/40 data-[active]:text-foreground"
+              />
+            }
+          >
+            {platformIds.length > 0 ? t`Providers (${platformIds.length})` : t`Providers`}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {providers
+              .filter((p) => p.tmdbProviderIds.length > 0)
+              .map((p) => (
+                <DropdownMenuCheckboxItem
+                  key={p.id}
+                  checked={platformIds.includes(p.id)}
+                  closeOnClick={false}
+                  onCheckedChange={(checked) => {
+                    setPlatformIds(
+                      checked ? [...platformIds, p.id] : platformIds.filter((id) => id !== p.id),
+                    );
+                    setUsingMyServices(false);
+                  }}
+                >
+                  {p.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button
           variant={usingMyServices ? "default" : "outline"}

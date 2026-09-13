@@ -3,6 +3,7 @@ import { ORPCError } from "@orpc/server";
 import { AppErrorCode } from "@sofa/api/errors";
 import { WATCH_REGION } from "@sofa/config";
 import { getRecommendationsFeed } from "@sofa/core/discovery";
+import { createLogger } from "@sofa/logger";
 import { ensureBrowseTitlesExist } from "@sofa/core/metadata";
 import { ensureBrowsePersonsExist } from "@sofa/core/person";
 import { getPlatformTmdbIdMap, getPlatformTmdbIds, listPlatforms } from "@sofa/core/platforms";
@@ -374,6 +375,7 @@ const items = baseItems.map((item) => {
 });
 
 const titleIds = items.map((r) => r.id).filter((id) => id !== "");
+const log = createLogger("discover");
 
 if (input.type === "movie" && titleIds.length > 0) {
   const imdbIds = getTitleImdbIds(titleIds);
@@ -384,8 +386,8 @@ if (input.type === "movie" && titleIds.length > 0) {
         try {
           const externalIds = await getMovieExternalIds(item.tmdbId);
           if (externalIds.imdb_id) updateTitleImdbId(item.id, externalIds.imdb_id);
-        } catch {
-          // best-effort — TMDB's own rating stays as the fallback if this fails
+        } catch (err) {
+          log.warn(`Failed to resolve imdbId for tmdbId ${item.tmdbId}:`, err);
         }
       }),
   );
