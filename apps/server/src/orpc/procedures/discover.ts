@@ -20,7 +20,7 @@ import {
 import { isTmdbConfigured } from "@sofa/tmdb/config";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
 import { getMovieExternalIds } from "@sofa/tmdb/client";
-import { getImdbRatingsByTitleIds, getTitleImdbIds, updateTitleImdbId } from "@sofa/core/metadata";
+import { getImdbRatingsByTitleIds, getTitleImdbIds, updateTitleImdbId } from "@sofa/db/queries/metadata";
 
 import { os } from "../context";
 import { authed } from "../middleware";

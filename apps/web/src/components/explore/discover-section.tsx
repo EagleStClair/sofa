@@ -15,6 +15,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
+import { Button } from "@/components/ui/button";
 
 const DECADE_PRESETS = [
   { label: "2020s", min: 2020, max: 2029 },
@@ -68,6 +69,7 @@ export function DiscoverSection() {
   const [sortBy, setSortBy] = useState<DiscoverSortBy | undefined>(undefined);
   const [language, setLanguage] = useState<string | undefined>(undefined);
   const [platformIds, setPlatformIds] = useState<string[]>([]);
+  const [usingMyServices, setUsingMyServices] = useState(false);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
@@ -335,15 +337,28 @@ export function DiscoverSection() {
         </Select>
 
         {/* Provider select */}
-        <ToggleGroup value={platformIds} onValueChange={setPlatformIds} variant="outline" size="sm">
+        <ToggleGroup
+          value={platformIds}
+          onValueChange={(values) => {
+            setPlatformIds(values);
+            setUsingMyServices(false);
+          }}
+          variant="outline"
+          size="sm"
+        >
           {providers.map((p) => (
             <ToggleGroupItem key={p.id} value={p.id}>{p.name}</ToggleGroupItem>
           ))}
         </ToggleGroup>
 
-        <Button variant={usingMyServices ? "default" : "outline"} size="sm" onClick={() => {
-          setPlatformIds(myPlatforms?.platformIds ?? []);
-        }}>
+        <Button
+          variant={usingMyServices ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setPlatformIds(myPlatforms?.platformIds ?? []);
+            setUsingMyServices(true);
+          }}
+        >
           {t`My services`}
         </Button>
 
