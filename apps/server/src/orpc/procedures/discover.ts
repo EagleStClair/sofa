@@ -381,7 +381,7 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
 
   if (input.type === "movie" && titleIds.length > 0) {
     const imdbIds = getTitleImdbIds(titleIds);
-    await Promise.all(
+    void Promise.all(
       items
         .filter((item) => item.id && !imdbIds[item.id])
         .map(async (item) => {
