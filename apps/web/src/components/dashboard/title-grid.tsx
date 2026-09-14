@@ -22,7 +22,7 @@ export function TitleGridSectionSkeleton() {
         <Skeleton className="size-5 rounded" />
         <Skeleton className="h-6 w-32" />
       </div>
-      <div className="grid grid-cols-3 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         <TitleCardSkeleton />
         <TitleCardSkeleton />
         <TitleCardSkeleton />
@@ -35,7 +35,7 @@ export function TitleGridSectionSkeleton() {
 
 export function TitleGrid({ items }: { items: TitleGridItem[] }) {
   return (
-    <div className="grid grid-cols-3 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {items.map((t, i) => (
         <div
           key={t.id}

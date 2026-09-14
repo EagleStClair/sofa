@@ -176,6 +176,29 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
     onSearchChange({ genreId: value ? Number(value) : undefined });
   }
 
+  const hasActiveFilters =
+    genreId != null ||
+    yearMin != null ||
+    ratingMin != null ||
+    sortBy != null ||
+    language != null ||
+    platformIds.length > 0 ||
+    !hideSeen;
+
+  function handleClearAll() {
+    onSearchChange({
+      genreId: undefined,
+      yearMin: undefined,
+      yearMax: undefined,
+      ratingMin: undefined,
+      sortBy: undefined,
+      language: undefined,
+      platformIds: undefined,
+      hideSeen: undefined,
+    });
+    setUsingMyServices(false);
+  }
+
   return (
     <FeedSection title={t`Discover`} icon={<IconSearch className="text-primary size-5" />}>
       <div className="flex flex-wrap items-center gap-2">
@@ -394,6 +417,12 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
           {t`Hide seen`}
         </Button>
       </div>
+
+      {hasActiveFilters && (
+        <Button variant="ghost" size="sm" onClick={handleClearAll}>
+          {t`Clear filters`}
+        </Button>
+      )}
 
       {isPending ? (
         <div className="flex items-center justify-center py-12">
