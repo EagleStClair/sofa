@@ -22,6 +22,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
+import type { DiscoverSearch } from "@/routes/_app/explore";
 
 const DECADE_PRESETS = [
   { label: "2020s", min: 2020, max: 2029 },
@@ -59,24 +60,30 @@ const LANGUAGE_OPTIONS = [
   { code: "pt", name: "Portuguese" },
 ] as const;
 
-export function DiscoverSection() {
+type DiscoverSortBy =
+  | "popularity.desc"
+  | "vote_average.desc"
+  | "primary_release_date.desc"
+  | "primary_release_date.asc";
+
+interface DiscoverSectionProps {
+  search: DiscoverSearch;
+  onSearchChange: (updates: Partial<DiscoverSearch>) => void;
+}
+
+export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps) {
   const { t } = useLingui();
 
-  const [type, setType] = useState<"movie" | "tv">("movie");
-  const [genreId, setGenreId] = useState<number | undefined>(undefined);
-  const [yearMin, setYearMin] = useState<number | undefined>(undefined);
-  const [yearMax, setYearMax] = useState<number | undefined>(undefined);
-  const [ratingMin, setRatingMin] = useState<number | undefined>(undefined);
-  type DiscoverSortBy =
-    | "popularity.desc"
-    | "vote_average.desc"
-    | "primary_release_date.desc"
-    | "primary_release_date.asc";
-  const [sortBy, setSortBy] = useState<DiscoverSortBy | undefined>(undefined);
-  const [language, setLanguage] = useState<string | undefined>(undefined);
-  const [platformIds, setPlatformIds] = useState<string[]>([]);
+  const type = search.type ?? "movie";
+  const genreId = search.genreId;
+  const yearMin = search.yearMin;
+  const yearMax = search.yearMax;
+  const ratingMin = search.ratingMin;
+  const sortBy = search.sortBy as DiscoverSortBy | undefined;
+  const language = search.language;
+  const platformIds = search.platformIds ?? [];
+  const hideSeen = search.hideSeen ?? true;
   const [usingMyServices, setUsingMyServices] = useState(false);
-  const [hideSeen, setHideSeen] = useState(true);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
@@ -144,53 +151,40 @@ export function DiscoverSection() {
 
   function handleDecadeChange(value: string | null) {
     if (!value) {
-      setYearMin(undefined);
-      setYearMax(undefined);
+      onSearchChange({ yearMin: undefined, yearMax: undefined });
       return;
     }
     const preset = DECADE_PRESETS.find((d) => String(d.min) === value);
     if (preset) {
-      setYearMin(preset.min);
-      setYearMax(preset.max);
+      onSearchChange({ yearMin: preset.min, yearMax: preset.max });
     }
   }
 
   function handleRatingChange(value: string | null) {
-    if (!value) {
-      setRatingMin(undefined);
-      return;
-    }
-    setRatingMin(Number(value));
+    onSearchChange({ ratingMin: value ? Number(value) : undefined });
   }
 
   function handleSortChange(value: string | null) {
-    setSortBy((value || undefined) as DiscoverSortBy | undefined);
+    onSearchChange({ sortBy: (value || undefined) as DiscoverSortBy | undefined });
   }
 
   function handleLanguageChange(value: string | null) {
-    setLanguage(value || undefined);
+    onSearchChange({ language: value || undefined });
   }
 
   function handleGenreChange(value: string | null) {
-    if (!value) {
-      setGenreId(undefined);
-      return;
-    }
-    setGenreId(Number(value));
+    onSearchChange({ genreId: value ? Number(value) : undefined });
   }
 
   return (
     <FeedSection title={t`Discover`} icon={<IconSearch className="text-primary size-5" />}>
       <div className="flex flex-wrap items-center gap-2">
-        {/* Type toggle: Movie | TV */}
         <ToggleGroup
           value={[type]}
           onValueChange={(values) => {
             const next = values.find((v) => v !== type);
             if (next === "movie" || next === "tv") {
-              setType(next);
-              setGenreId(undefined);
-              setPlatformIds([]);
+              onSearchChange({ type: next, genreId: undefined, platformIds: undefined });
             }
           }}
           variant="outline"
@@ -200,10 +194,8 @@ export function DiscoverSection() {
           <ToggleGroupItem value="tv">{t`TV`}</ToggleGroupItem>
         </ToggleGroup>
 
-        {/* Divider */}
         <div className="bg-border/30 mx-0.5 hidden h-5 w-px sm:block" />
 
-        {/* Genre select */}
         <Select
           value={genreId != null ? String(genreId) : ""}
           onValueChange={handleGenreChange}
@@ -233,7 +225,6 @@ export function DiscoverSection() {
           </SelectContent>
         </Select>
 
-        {/* Year select (decade presets) */}
         <Select
           value={yearMin != null ? String(yearMin) : ""}
           onValueChange={handleDecadeChange}
@@ -264,7 +255,6 @@ export function DiscoverSection() {
           </SelectContent>
         </Select>
 
-        {/* Rating select (minimum TMDB rating) */}
         <Select
           value={ratingMin != null ? String(ratingMin) : ""}
           onValueChange={handleRatingChange}
@@ -293,7 +283,6 @@ export function DiscoverSection() {
           </SelectContent>
         </Select>
 
-        {/* Sort select */}
         <Select
           value={sortBy ?? ""}
           onValueChange={handleSortChange}
@@ -322,7 +311,6 @@ export function DiscoverSection() {
           </SelectContent>
         </Select>
 
-        {/* Language select */}
         <Select
           value={language ?? ""}
           onValueChange={handleLanguageChange}
@@ -351,7 +339,6 @@ export function DiscoverSection() {
           </SelectContent>
         </Select>
 
-        {/* Provider select */}
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -374,9 +361,10 @@ export function DiscoverSection() {
                   checked={platformIds.includes(p.id)}
                   closeOnClick={false}
                   onCheckedChange={(checked) => {
-                    setPlatformIds(
-                      checked ? [...platformIds, p.id] : platformIds.filter((id) => id !== p.id),
-                    );
+                    const next = checked
+                      ? [...platformIds, p.id]
+                      : platformIds.filter((id) => id !== p.id);
+                    onSearchChange({ platformIds: next.length ? next : undefined });
                     setUsingMyServices(false);
                   }}
                 >
@@ -390,7 +378,8 @@ export function DiscoverSection() {
           variant={usingMyServices ? "default" : "outline"}
           size="sm"
           onClick={() => {
-            setPlatformIds(myPlatforms?.platformIds ?? []);
+            const mine = myPlatforms?.platformIds ?? [];
+            onSearchChange({ platformIds: mine.length ? mine : undefined });
             setUsingMyServices(true);
           }}
         >
@@ -400,14 +389,12 @@ export function DiscoverSection() {
         <Button
           variant={hideSeen ? "default" : "outline"}
           size="sm"
-          onClick={() => setHideSeen((v) => !v)}
+          onClick={() => onSearchChange({ hideSeen: hideSeen ? false : undefined })}
         >
           {t`Hide seen`}
         </Button>
-
       </div>
 
-      {/* Results */}
       {isPending ? (
         <div className="flex items-center justify-center py-12">
           <IconLoader className="text-muted-foreground size-6 animate-spin" />

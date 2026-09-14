@@ -26,6 +26,8 @@ import { getImdbRatingsByTitleIds, getTitleImdbIds, updateTitleImdbId } from "@s
 import { os } from "../context";
 import { authed } from "../middleware";
 
+const log = createLogger("discover");
+
 function requireTmdb() {
   if (!isTmdbConfigured()) {
     throw new ORPCError("PRECONDITION_FAILED", {
@@ -340,6 +342,7 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
     if (tmdbIds.length > 0) {
       params.with_watch_providers = tmdbIds.join("|");
       params.watch_region = WATCH_REGION;
+      params.with_watch_monetization_types = "flatrate|free|ads";
     }
   }
 
@@ -364,40 +367,39 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
       voteAverage: r.vote_average ?? null,
     }));
 
-const titleMap = ensureBrowseTitlesExist(baseItems);
-const items = baseItems.map((item) => {
-  const entry = titleMap.get(`${item.tmdbId}-${item.type}`);
-  return Object.assign(item, {
-    id: entry?.id ?? "",
-    posterPath: tmdbImageUrl(item.posterPath, "posters"),
-    posterThumbHash: entry?.posterThumbHash ?? null,
+  const titleMap = ensureBrowseTitlesExist(baseItems);
+  const items = baseItems.map((item) => {
+    const entry = titleMap.get(`${item.tmdbId}-${item.type}`);
+    return Object.assign(item, {
+      id: entry?.id ?? "",
+      posterPath: tmdbImageUrl(item.posterPath, "posters"),
+      posterThumbHash: entry?.posterThumbHash ?? null,
+    });
   });
-});
 
-const titleIds = items.map((r) => r.id).filter((id) => id !== "");
-const log = createLogger("discover");
+  const titleIds = items.map((r) => r.id).filter((id) => id !== "");
 
-if (input.type === "movie" && titleIds.length > 0) {
-  const imdbIds = getTitleImdbIds(titleIds);
-  await Promise.all(
-    items
-      .filter((item) => item.id && !imdbIds[item.id])
-      .map(async (item) => {
-        try {
-          const externalIds = await getMovieExternalIds(item.tmdbId);
-          if (externalIds.imdb_id) updateTitleImdbId(item.id, externalIds.imdb_id);
-        } catch (err) {
-          log.warn(`Failed to resolve imdbId for tmdbId ${item.tmdbId}:`, err);
-        }
-      }),
-  );
-}
+  if (input.type === "movie" && titleIds.length > 0) {
+    const imdbIds = getTitleImdbIds(titleIds);
+    await Promise.all(
+      items
+        .filter((item) => item.id && !imdbIds[item.id])
+        .map(async (item) => {
+          try {
+            const externalIds = await getMovieExternalIds(item.tmdbId);
+            if (externalIds.imdb_id) updateTitleImdbId(item.id, externalIds.imdb_id);
+          } catch (err) {
+            log.warn(`Failed to resolve imdbId for tmdbId ${item.tmdbId}:`, err);
+          }
+        }),
+    );
+  }
 
-const imdbRatings = titleIds.length > 0 ? getImdbRatingsByTitleIds(titleIds) : {};
-for (const item of items) {
-  const rating = imdbRatings[item.id];
-  if (rating != null) item.voteAverage = rating;
-}
+  const imdbRatings = titleIds.length > 0 ? getImdbRatingsByTitleIds(titleIds) : {};
+  for (const item of items) {
+    const rating = imdbRatings[item.id];
+    if (rating != null) item.voteAverage = rating;
+  }
   const [userStatuses, episodeProgress] =
     titleIds.length > 0
       ? [
