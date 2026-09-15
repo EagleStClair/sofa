@@ -60,6 +60,7 @@ export function logMovieWatch(
   } else if (existing.status !== "completed") {
     setTitleStatus(userId, titleId, "completed", source);
   }
+}
 
 export function logEpisodeWatch(
   userId: string,
