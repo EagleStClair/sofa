@@ -15,7 +15,6 @@ import {
   getThumbhashBackfillTitleIds,
   getTitleByIdForCron,
   getTitleIdsWithStaleSeasons,
-  getTitlesWithFreshRecommendations,
   startCronRun,
 } from "@sofa/core/cron";
 import {
@@ -26,7 +25,6 @@ import {
   imageCacheEnabled,
 } from "@sofa/core/image-cache";
 import {
-  refreshRecommendations,
   refreshTitle,
   refreshTvChildren,
   syncTvChildArt,
@@ -135,21 +133,6 @@ async function refreshAvailabilityJob() {
       await refreshAvailability(titleId);
       await Bun.sleep(RATE_LIMIT_MS);
     }
-  }
-}
-
-async function refreshRecommendationsJob() {
-  const libraryIds = getLibraryTitleIds();
-  const stale = new Date(Date.now() - 30 * DAY);
-  const fresh = getTitlesWithFreshRecommendations(libraryIds, stale);
-  const staleIds = libraryIds.filter((id) => !fresh.has(id));
-  log.debug(
-    `Refreshing recommendations for ${staleIds.length} of ${libraryIds.length} library titles`,
-  );
-
-  for (const titleId of staleIds) {
-    await refreshRecommendations(titleId);
-    await Bun.sleep(RATE_LIMIT_MS);
   }
 }
 
@@ -294,7 +277,6 @@ export function startJobs() {
   schedule("scheduledBackup", getBackupCronFromSettings(), scheduledBackupJob);
   schedule("nightlyRefreshLibrary", "0 3 * * *", nightlyRefreshLibrary);
   schedule("refreshAvailability", "0 */6 * * *", refreshAvailabilityJob);
-  schedule("refreshRecommendations", "0 */12 * * *", refreshRecommendationsJob);
   schedule("refreshTvChildren", "30 */12 * * *", refreshTvChildrenJob);
   schedule("cacheImages", "0 1,13 * * *", cacheImagesJob);
   schedule("refreshCredits", "0 2 * * *", refreshCreditsJob);

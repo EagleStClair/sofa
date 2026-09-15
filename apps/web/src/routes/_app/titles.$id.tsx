@@ -7,7 +7,6 @@ import { TitleCast } from "@/components/titles/title-cast";
 import { TitleHero } from "@/components/titles/title-hero";
 import { TitleKeyboardShortcuts } from "@/components/titles/title-keyboard-shortcuts";
 import { TitleProvider } from "@/components/titles/title-provider";
-import { TitleRecommendations } from "@/components/titles/title-recommendations";
 import { TitleSeasons } from "@/components/titles/title-seasons";
 import { TitleTheme } from "@/components/titles/title-theme";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,8 +73,6 @@ function TitleDetailPage() {
 
         <TitleKeyboardShortcuts />
       </TitleProvider>
-
-      <TitleRecommendations titleId={title.id} />
     </div>
   );
 }

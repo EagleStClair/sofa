@@ -61,18 +61,6 @@ export function logMovieWatch(
     setTitleStatus(userId, titleId, "completed", source);
   }
 
-  if (process.env.HA_WEBHOOK_URL) {
-    const title = getTitleById(titleId);
-    if (title) {
-      fetch(process.env.HA_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tmdbId: title.tmdbId }),
-      }).catch(() => {});
-    }
-  }
-}
-
 export function logEpisodeWatch(
   userId: string,
   episodeId: string,

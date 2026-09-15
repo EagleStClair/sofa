@@ -317,31 +317,6 @@ export const userPlatforms = sqliteTable(
   ],
 );
 
-export const titleRecommendations = sqliteTable(
-  "titleRecommendations",
-  {
-    titleId: text("titleId")
-      .notNull()
-      .references(() => titles.id, { onDelete: "cascade" }),
-    recommendedTitleId: text("recommendedTitleId")
-      .notNull()
-      .references(() => titles.id, { onDelete: "cascade" }),
-    source: text("source", {
-      enum: ["tmdb_similar", "tmdb_recommendations"],
-    }).notNull(),
-    rank: int("rank").notNull(),
-    lastFetchedAt: int("lastFetchedAt", { mode: "timestamp" }),
-  },
-  (table) => [
-    uniqueIndex("titleRecommendations_unique").on(
-      table.titleId,
-      table.recommendedTitleId,
-      table.source,
-    ),
-    index("titleRecommendations_titleId_rank").on(table.titleId, table.rank),
-  ],
-);
-
 // ─── Persons & Cast ─────────────────────────────────────────────────
 
 export const persons = sqliteTable(

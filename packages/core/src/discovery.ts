@@ -1,18 +1,13 @@
 import {
-  getAllTrackedTitleIds,
   getAvailabilityByTitleIds,
-  getEngagedTitleIds,
   getEpisodesBySeasonIds,
   getEpisodeWatchCountSince,
   getEpisodeWatchesByEpisodeIds,
   getEpisodeWatchHistoryBuckets,
-  getHighlyRatedTitleIds,
   getInProgressTitleIds,
   getMovieWatchCountSince,
   getMovieWatchHistoryBuckets,
   getNewAvailableFeed,
-  getRecommendationRows,
-  getRecommendationRowsForTitle,
   getSeasonsByTitleIds,
   getTitleByIdOrNull,
   getTitlesByIds,
@@ -305,53 +300,6 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
 
 export { getNewAvailableFeed } from "@sofa/db/queries/discovery";
 
-export function getRecommendationsFeed(userId: string) {
-  // Get recommendations from user's highly-rated or completed titles
-  const userCompletedOrRated = getEngagedTitleIds(userId);
-
-  const ratedIds = getHighlyRatedTitleIds(userId);
-
-  const sourceIds = [...new Set([...userCompletedOrRated, ...ratedIds])];
-  if (sourceIds.length === 0) return [];
-
-  // Get all tracked title IDs to exclude
-  const trackedIds = new Set(getAllTrackedTitleIds(userId));
-
-  // Batch fetch all recommendations for all source IDs (1 query)
-  const allRecRows = getRecommendationRows(sourceIds);
-
-  const recs: Map<string, { titleId: string; score: number }> = new Map();
-
-  for (const rec of allRecRows) {
-    if (trackedIds.has(rec.recommendedTitleId)) continue;
-    const existing = recs.get(rec.recommendedTitleId);
-    const score = 100 - rec.rank;
-    if (existing) {
-      existing.score += score;
-    } else {
-      recs.set(rec.recommendedTitleId, {
-        titleId: rec.recommendedTitleId,
-        score,
-      });
-    }
-  }
-
-  const sorted = recs
-    .values()
-    .toArray()
-    .toSorted((a, b) => b.score - a.score)
-    .slice(0, 20);
-
-  if (sorted.length === 0) return [];
-
-  // Batch fetch all recommended titles (1 query)
-  const recTitleIds = sorted.map((r) => r.titleId);
-  const recTitles = getTitlesByIds(recTitleIds);
-  const recTitleMap = new Map(recTitles.map((t) => [t.id, t]));
-
-  return sorted.map((r) => recTitleMap.get(r.titleId)).filter(Boolean);
-}
-
 // ─── Upcoming feed ──────────────────────────────────────────────────
 
 export interface UpcomingItem {
@@ -578,53 +526,4 @@ export function getUpcomingFeed(
   });
 
   return { items, nextCursor };
-}
-
-export function getRecommendationsForTitle(titleId: string) {
-  const title = getTitleByIdOrNull(titleId);
-  if (!title) return [];
-
-  const recs = getRecommendationRowsForTitle(titleId);
-
-  if (recs.length === 0) return [];
-
-  const sourcePriority = {
-    tmdb_recommendations: 0,
-    tmdb_similar: 1,
-  } as const;
-  const orderedRecs = recs.toSorted(
-    (a, b) => a.rank - b.rank || sourcePriority[a.source] - sourcePriority[b.source],
-  );
-
-  const seenRecommendedTitleIds = new Set<string>();
-  const uniqueRecs = orderedRecs.filter((rec) => {
-    if (seenRecommendedTitleIds.has(rec.recommendedTitleId)) {
-      return false;
-    }
-    seenRecommendedTitleIds.add(rec.recommendedTitleId);
-    return true;
-  });
-
-  // Batch fetch all recommended titles (1 query)
-  const recTitleIds = uniqueRecs.map((r) => r.recommendedTitleId);
-  const recTitles = getTitlesByIds(recTitleIds);
-  const recTitleMap = new Map(recTitles.map((t) => [t.id, t]));
-
-  return uniqueRecs
-    .map((rec) => {
-      const r = recTitleMap.get(rec.recommendedTitleId);
-      if (!r) return null;
-      return {
-        id: r.id,
-        tmdbId: r.tmdbId,
-        type: r.type as "movie" | "tv",
-        title: r.title,
-        posterPath: tmdbImageUrl(r.posterPath, "posters"),
-        posterThumbHash: r.posterThumbHash,
-        releaseDate: r.releaseDate,
-        firstAirDate: r.firstAirDate,
-        voteAverage: r.voteAverage,
-      };
-    })
-    .filter((r): r is NonNullable<typeof r> => r !== null);
 }

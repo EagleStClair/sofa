@@ -18,7 +18,6 @@ import {
   getTitleByTmdbIdAndType,
   getTitleGenres,
   getTitlesNeedingPosterHash,
-  hasRecommendationsForTitle,
   hasSeasonForTitle,
   insertTitleReturning,
   nullifyEpisodeThumbHash,
@@ -26,7 +25,6 @@ import {
   updateTitleFields,
   updateTrailerKey,
   upsertGenresTransaction,
-  upsertRecommendationsTransaction,
   upsertSeasonReturning,
 } from "@sofa/db/queries/metadata";
 import { getTitleById } from "@sofa/db/queries/title";
@@ -36,8 +34,6 @@ import { createLogger } from "@sofa/logger";
 import type { TmdbMovieDetails, TmdbTvDetails, TmdbVideo } from "@sofa/tmdb/client";
 import {
   getMovieDetails,
-  getRecommendations,
-  getSimilar,
   getTvDetails,
   getTvSeasonDetails,
   getVideos,
@@ -138,7 +134,7 @@ export function extractTvContentRating(show: TmdbTvDetails): string | null {
   return region?.rating || null;
 }
 
-/** Fire-and-forget enrichment tasks (availability, recommendations, art, credits, trailer) */
+/** Fire-and-forget enrichment tasks (availability, art, credits, trailer) */
 function fireAndForgetEnrichment(
   titleId: string,
   posterPath: string | null | undefined,
@@ -146,9 +142,6 @@ function fireAndForgetEnrichment(
   type: "movie" | "tv",
 ) {
   refreshAvailability(titleId).catch((err) => log.warn("Availability enrichment failed:", err));
-  refreshRecommendations(titleId).catch((err) =>
-    log.warn("Recommendations enrichment failed:", err),
-  );
   syncTitleArt(titleId, posterPath, backdropPath, type).catch((err) =>
     log.warn("Cache/thumbhash failed:", err),
   );
@@ -430,115 +423,6 @@ export async function refreshTvChildren(titleId: string, tmdbId: number, numberO
   }
 }
 
-export async function refreshRecommendations(titleId: string) {
-  const title = getTitleById(titleId);
-  if (!title) return;
-
-  const now = new Date();
-
-  // Fetch both recommendations and similar
-  const [recs, similar] = await Promise.all([
-    getRecommendations(title.tmdbId, title.type),
-    getSimilar(title.tmdbId, title.type),
-  ]);
-
-  const recsResults = recs.results ?? [];
-  const similarResults = similar.results ?? [];
-
-  log.debug(
-    `Fetched ${recsResults.length} recommendations and ${similarResults.length} similar for title ${titleId}`,
-  );
-
-  // Collect all valid results with their source/rank
-  interface RecItem {
-    result: (typeof recsResults)[number];
-    type: "movie" | "tv";
-    source: "tmdb_recommendations" | "tmdb_similar";
-    rank: number;
-  }
-  const allItems: RecItem[] = [];
-  for (let i = 0; i < recsResults.length && i < 20; i++) {
-    const r = recsResults[i];
-    const type = r.media_type ?? title.type;
-    if (type === "movie" || type === "tv") {
-      allItems.push({
-        result: r,
-        type,
-        source: "tmdb_recommendations",
-        rank: i + 1,
-      });
-    }
-  }
-  for (let i = 0; i < similarResults.length && i < 20; i++) {
-    const r = similarResults[i];
-    const type = r.media_type ?? title.type;
-    if (type === "movie" || type === "tv") {
-      allItems.push({ result: r, type, source: "tmdb_similar", rank: i + 1 });
-    }
-  }
-
-  if (allItems.length === 0) return;
-
-  const uniqueTitles = new Map<
-    number,
-    {
-      tmdbId: number;
-      type: "movie" | "tv";
-      title: string;
-      originalTitle: string | null;
-      overview: string | null;
-      releaseDate: string | null;
-      firstAirDate: string | null;
-      posterPath: string | null;
-      backdropPath: string | null;
-      popularity: number | null;
-      voteAverage: number | null;
-      voteCount: number | null;
-    }
-  >();
-  for (const item of allItems) {
-    if (uniqueTitles.has(item.result.id)) continue;
-    uniqueTitles.set(item.result.id, {
-      tmdbId: item.result.id,
-      type: item.type,
-      title: item.result.title ?? item.result.name ?? "Unknown",
-      originalTitle: item.result.original_title ?? item.result.original_name ?? null,
-      overview: item.result.overview ?? null,
-      releaseDate: item.result.release_date ?? null,
-      firstAirDate: item.result.first_air_date ?? null,
-      posterPath: item.result.poster_path ?? null,
-      backdropPath: item.result.backdrop_path ?? null,
-      popularity: item.result.popularity ?? null,
-      voteAverage: item.result.vote_average ?? null,
-      voteCount: item.result.vote_count ?? null,
-    });
-  }
-
-  const titleIdMap = upsertRecommendationsTransaction(
-    titleId,
-    uniqueTitles,
-    allItems.map((item) => ({
-      tmdbId: item.result.id,
-      source: item.source,
-      rank: item.rank,
-    })),
-    now,
-  );
-
-  // Fire-and-forget thumbhash generation for recommendation titles missing one
-  const recTitleIds = [
-    ...new Set(allItems.map((i) => titleIdMap.get(i.result.id)).filter(Boolean)),
-  ] as string[];
-  if (recTitleIds.length > 0) {
-    const needingHash = getTitlesNeedingPosterHash(recTitleIds);
-    for (const t of needingHash) {
-      generateTitlePosterThumbHash(t.id, t.posterPath).catch((err) =>
-        log.debug("Recommendation poster thumbhash failed:", err),
-      );
-    }
-  }
-}
-
 /** Fetch seasons from the DB, building the Season[] structure. */
 function fetchSeasonsFromDb(titleId: string): Season[] {
   const seasonRows = getSeasonsForTitle(titleId);
@@ -622,7 +506,7 @@ export async function ensureTvHydrated(titleId: string): Promise<Season[]> {
 /**
  * Ensure a title has all enrichment data. Accepts already-read data to avoid
  * redundant queries — only does lightweight existence checks for data not
- * already loaded (recommendations). Returns true if any work was performed.
+ * already loaded. Returns true if any work was performed.
  */
 async function ensureEnriched(
   titleId: string,
@@ -641,15 +525,6 @@ async function ensureEnriched(
     tasks.push(
       refreshAvailability(titleId).catch((err) =>
         log.debug("Availability enrichment failed:", err),
-      ),
-    );
-  }
-
-  // Recommendations are loaded separately (Suspense), so check here
-  if (!hasRecommendationsForTitle(titleId)) {
-    tasks.push(
-      refreshRecommendations(titleId).catch((err) =>
-        log.debug("Recommendations enrichment failed:", err),
       ),
     );
   }
