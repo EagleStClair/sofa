@@ -6,7 +6,6 @@ import {
   getStaleNonLibraryTitles,
   getTitleByIdForCron,
   getTitleIdsWithStaleSeasons,
-  getTitlesWithFreshRecommendations,
   getTitlesWithStaleOffers,
   getTitlesWithStaleOffersFetchedBefore,
   insertCronRunReturning,
@@ -54,5 +53,4 @@ export {
   getReturningTvShows,
   getTitleByIdForCron,
   getTitleIdsWithStaleSeasons,
-  getTitlesWithFreshRecommendations,
 };

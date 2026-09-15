@@ -134,7 +134,7 @@ export function extractTvContentRating(show: TmdbTvDetails): string | null {
   return region?.rating || null;
 }
 
-/** Fire-and-forget enrichment tasks (availability, recommendations, art, credits, trailer) */
+/** Fire-and-forget enrichment tasks (availability, art, credits, trailer) */
 function fireAndForgetEnrichment(
   titleId: string,
   posterPath: string | null | undefined,
@@ -142,9 +142,6 @@ function fireAndForgetEnrichment(
   type: "movie" | "tv",
 ) {
   refreshAvailability(titleId).catch((err) => log.warn("Availability enrichment failed:", err));
-  refreshRecommendations(titleId).catch((err) =>
-    log.warn("Recommendations enrichment failed:", err),
-  );
   syncTitleArt(titleId, posterPath, backdropPath, type).catch((err) =>
     log.warn("Cache/thumbhash failed:", err),
   );

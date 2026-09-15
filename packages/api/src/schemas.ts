@@ -213,7 +213,6 @@ const cronJobName = z.enum([
   "scheduledBackup",
   "nightlyRefreshLibrary",
   "refreshAvailability",
-  "refreshRecommendations",
   "refreshTvChildren",
   "cacheImages",
   "refreshCredits",
@@ -473,21 +472,6 @@ export const TmdbBrowseItem = z
   .meta({
     description: "A TMDB title card used in browse/trending/popular lists",
   });
-
-/** Recommendation item (shared by title and dashboard recommendations) */
-export const RecommendationItemSchema = z
-  .object({
-    id: z.string().describe("Internal title ID"),
-    tmdbId: z.number().describe("TMDB numeric ID"),
-    type: mediaType,
-    title: z.string().describe("Display title"),
-    posterPath: z.string().nullable().describe("Poster image path"),
-    posterThumbHash: z.string().nullable().describe("ThumbHash blur placeholder for the poster"),
-    releaseDate: z.string().nullable().describe("Release date (ISO 8601)"),
-    firstAirDate: z.string().nullable().describe("First air date (ISO 8601)"),
-    voteAverage: z.number().nullable().describe("Average rating (0-10)"),
-  })
-  .meta({ description: "A recommended title" });
 
 const displayStatusEnum = z.enum(["in_watchlist", "watching", "caught_up", "completed"]);
 
@@ -1224,7 +1208,6 @@ export type LibraryStats = z.infer<typeof LibraryStatsOutput>;
 export type Episode = z.infer<typeof EpisodeSchema>;
 export type HistoryBucket = z.infer<typeof HistoryBucketSchema>;
 export type PersonCredit = z.infer<typeof PersonCreditSchema>;
-export type RecommendationItem = z.infer<typeof RecommendationItemSchema>;
 export type ResolvedPerson = z.infer<typeof PersonSchema>;
 export type ResolvedTitle = z.infer<typeof ResolvedTitleSchema>;
 export type Season = z.infer<typeof SeasonSchema>;
