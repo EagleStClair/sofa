@@ -304,27 +304,6 @@ export function getAvailabilityOffersForTitle(titleId: string) {
     .all();
 }
 
-interface RecommendationTitleInput {
-  tmdbId: number;
-  type: "movie" | "tv";
-  title: string;
-  originalTitle: string | null;
-  overview: string | null;
-  releaseDate: string | null;
-  firstAirDate: string | null;
-  posterPath: string | null;
-  backdropPath: string | null;
-  popularity: number | null;
-  voteAverage: number | null;
-  voteCount: number | null;
-}
-
-interface RecommendationRowInput {
-  tmdbId: number;
-  source: "tmdb_recommendations" | "tmdb_similar";
-  rank: number;
-}
-
 // ─── Poster hash helpers ─────────────────────────────────────────────
 
 export function getTitlesNeedingPosterHash(titleIds: string[]) {
