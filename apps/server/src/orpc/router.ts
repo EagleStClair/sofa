@@ -12,7 +12,6 @@ import * as tracking from "./procedures/tracking";
 export const implementedRouter = {
   titles: {
     get: titles.get,
-    similar: titles.similar,
   },
   tracking: {
     watch: tracking.watch,
