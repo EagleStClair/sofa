@@ -1,18 +1,13 @@
 import {
-  getAllTrackedTitleIds,
   getAvailabilityByTitleIds,
-  getEngagedTitleIds,
   getEpisodesBySeasonIds,
   getEpisodeWatchCountSince,
   getEpisodeWatchesByEpisodeIds,
   getEpisodeWatchHistoryBuckets,
-  getHighlyRatedTitleIds,
   getInProgressTitleIds,
   getMovieWatchCountSince,
   getMovieWatchHistoryBuckets,
   getNewAvailableFeed,
-  getRecommendationRows,
-  getRecommendationRowsForTitle,
   getSeasonsByTitleIds,
   getTitleByIdOrNull,
   getTitlesByIds,
@@ -304,53 +299,6 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
 }
 
 export { getNewAvailableFeed } from "@sofa/db/queries/discovery";
-
-export function getRecommendationsFeed(userId: string) {
-  // Get recommendations from user's highly-rated or completed titles
-  const userCompletedOrRated = getEngagedTitleIds(userId);
-
-  const ratedIds = getHighlyRatedTitleIds(userId);
-
-  const sourceIds = [...new Set([...userCompletedOrRated, ...ratedIds])];
-  if (sourceIds.length === 0) return [];
-
-  // Get all tracked title IDs to exclude
-  const trackedIds = new Set(getAllTrackedTitleIds(userId));
-
-  // Batch fetch all recommendations for all source IDs (1 query)
-  const allRecRows = getRecommendationRows(sourceIds);
-
-  const recs: Map<string, { titleId: string; score: number }> = new Map();
-
-  for (const rec of allRecRows) {
-    if (trackedIds.has(rec.recommendedTitleId)) continue;
-    const existing = recs.get(rec.recommendedTitleId);
-    const score = 100 - rec.rank;
-    if (existing) {
-      existing.score += score;
-    } else {
-      recs.set(rec.recommendedTitleId, {
-        titleId: rec.recommendedTitleId,
-        score,
-      });
-    }
-  }
-
-  const sorted = recs
-    .values()
-    .toArray()
-    .toSorted((a, b) => b.score - a.score)
-    .slice(0, 20);
-
-  if (sorted.length === 0) return [];
-
-  // Batch fetch all recommended titles (1 query)
-  const recTitleIds = sorted.map((r) => r.titleId);
-  const recTitles = getTitlesByIds(recTitleIds);
-  const recTitleMap = new Map(recTitles.map((t) => [t.id, t]));
-
-  return sorted.map((r) => recTitleMap.get(r.titleId)).filter(Boolean);
-}
 
 // ─── Upcoming feed ──────────────────────────────────────────────────
 

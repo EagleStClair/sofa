@@ -96,18 +96,6 @@ export const contract = {
           data: appErrorData(AppErrorCode.TITLE_NOT_FOUND),
         },
       }),
-    similar: oc
-      .route({
-        method: "GET",
-        path: "/titles/{id}/similar",
-        tags: ["Titles"],
-        summary: "Get similar titles",
-        description:
-          "Fetch similar titles based on locally cached recommendation data, along with the user's statuses for each.",
-        successDescription: "Similar titles with user statuses",
-      })
-      .input(IdParam)
-      .output(TitleRecommendationsOutput),
   },
 
   // ─── Tracking ───────────────────────────────────────────────
@@ -336,17 +324,6 @@ export const contract = {
         successDescription: "Platform list with logos and metadata",
       })
       .output(PlatformsListOutput),
-    recommendations: oc
-      .route({
-        method: "GET",
-        path: "/discover/recommendations",
-        tags: ["Discover"],
-        summary: "Get personalized recommendations",
-        description:
-          "Fetch personalized title recommendations based on the user's library and watch history.",
-        successDescription: "Recommended titles",
-      })
-      .output(DiscoverRecommendationsOutput),
   },
 
   // ─── People ─────────────────────────────────────────────────

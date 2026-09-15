@@ -134,26 +134,3 @@ export function deleteOldCronRuns(beforeDate: Date): number {
     .returning({ id: cronRuns.id })
     .all().length;
 }
-
-export function getTitlesWithFreshRecommendations(
-  titleIds: string[],
-  sinceDate: Date,
-): Set<string> {
-  if (titleIds.length === 0) return new Set();
-
-  return new Set(
-    db
-      .select({ titleId: titleRecommendations.titleId })
-      .from(titleRecommendations)
-      .where(
-        and(
-          inArray(titleRecommendations.titleId, titleIds),
-          // All recs for a title share the same lastFetchedAt, so any row suffices
-          gte(titleRecommendations.lastFetchedAt, sinceDate),
-        ),
-      )
-      .groupBy(titleRecommendations.titleId)
-      .all()
-      .map((r) => r.titleId),
-  );
-}

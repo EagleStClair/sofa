@@ -535,15 +535,6 @@ export const UserInfoOutput = z
     description: "The current user's tracking info for a title",
   });
 
-export const TitleRecommendationsOutput = z
-  .object({
-    recommendations: z.array(RecommendationItemSchema),
-    userStatuses: userStatusMap,
-  })
-  .meta({
-    description: "Recommended titles with the user's statuses",
-  });
-
 // ─── People outputs ────────────────────────────────────────────
 
 export const PersonDetailOutput = z
@@ -668,14 +659,6 @@ export const LibraryGenresOutput = z
       .describe("Genres present in the user's library"),
   })
   .meta({ description: "Genres that exist in the user's library" });
-
-export const DiscoverRecommendationsOutput = z
-  .object({
-    items: z.array(RecommendationItemSchema),
-  })
-  .meta({
-    description: "Personalized title recommendations based on the user's library",
-  });
 
 // ─── Upcoming outputs ─────────────────────────────────────────
 

@@ -2,7 +2,6 @@ import { ORPCError } from "@orpc/server";
 
 import { AppErrorCode } from "@sofa/api/errors";
 import { WATCH_REGION } from "@sofa/config";
-import { getRecommendationsFeed } from "@sofa/core/discovery";
 import { createLogger } from "@sofa/logger";
 import { ensureBrowseTitlesExist } from "@sofa/core/metadata";
 import { ensureBrowsePersonsExist } from "@sofa/core/person";
@@ -445,25 +444,4 @@ export const platforms = os.discover.platforms.use(authed).handler(async () => {
       isSubscription: p.isSubscription,
     })),
   };
-});
-
-// ─── Recommendations ──────────────────────────────────────────
-
-export const recommendations = os.discover.recommendations.use(authed).handler(({ context }) => {
-  const feed = getRecommendationsFeed(context.user.id);
-  const items = feed
-    .filter((t): t is NonNullable<typeof t> => t != null)
-    .slice(0, 10)
-    .map((t) => ({
-      id: t.id,
-      tmdbId: t.tmdbId,
-      type: t.type,
-      title: t.title,
-      posterPath: tmdbImageUrl(t.posterPath, "posters"),
-      posterThumbHash: t.posterThumbHash ?? null,
-      releaseDate: t.releaseDate ?? null,
-      firstAirDate: t.firstAirDate ?? null,
-      voteAverage: t.voteAverage,
-    }));
-  return { items };
 });

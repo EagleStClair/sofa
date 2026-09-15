@@ -229,34 +229,9 @@ export function getAllTrackedTitleIds(userId: string) {
     .map((r) => r.titleId);
 }
 
-export function getRecommendationRows(sourceIds: string[]) {
-  if (sourceIds.length === 0) return [];
-  return db
-    .select({
-      recommendedTitleId: titleRecommendations.recommendedTitleId,
-      rank: titleRecommendations.rank,
-    })
-    .from(titleRecommendations)
-    .where(inArray(titleRecommendations.titleId, sourceIds))
-    .all();
-}
-
 export function getTitlesByIds(titleIds: string[]) {
   if (titleIds.length === 0) return [];
   return db.select().from(titles).where(inArray(titles.id, titleIds)).all();
-}
-
-export function getRecommendationRowsForTitle(titleId: string) {
-  return db
-    .select({
-      recommendedTitleId: titleRecommendations.recommendedTitleId,
-      source: titleRecommendations.source,
-      rank: titleRecommendations.rank,
-    })
-    .from(titleRecommendations)
-    .where(eq(titleRecommendations.titleId, titleId))
-    .orderBy(titleRecommendations.rank)
-    .all();
 }
 
 export function getTitleByIdOrNull(titleId: string) {
