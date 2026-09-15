@@ -37,7 +37,6 @@ export const implementedRouter = {
     browse: discover.browse,
     genres: discover.genres,
     platforms: discover.platforms,
-    recommendations: discover.recommendations,
   },
   people: {
     get: people.get,
