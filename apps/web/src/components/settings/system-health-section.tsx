@@ -310,7 +310,6 @@ function BackgroundJobsCard({
   const JOB_LABELS: Record<string, string> = {
     nightlyRefreshLibrary: t`Library refresh`,
     refreshAvailability: t`Availability`,
-    refreshRecommendations: t`Recommendations`,
     refreshTvChildren: t`TV episodes`,
     cacheImages: t`Image cache`,
     scheduledBackup: t`Backup`,

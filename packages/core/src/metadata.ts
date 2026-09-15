@@ -506,7 +506,7 @@ export async function ensureTvHydrated(titleId: string): Promise<Season[]> {
 /**
  * Ensure a title has all enrichment data. Accepts already-read data to avoid
  * redundant queries — only does lightweight existence checks for data not
- * already loaded (recommendations). Returns true if any work was performed.
+ * already loaded. Returns true if any work was performed.
  */
 async function ensureEnriched(
   titleId: string,
