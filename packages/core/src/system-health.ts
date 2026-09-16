@@ -7,7 +7,6 @@ import { getLatestCronRuns, getTableCounts } from "@sofa/db/queries/system-healt
 import { listBackups } from "./backup";
 import { imageCacheEnabled } from "./image-cache";
 import { getSetting } from "./settings";
-import { isUpdateCheckEnabled } from "./update-check";
 
 export interface SystemHealthData {
   database: {
@@ -61,7 +60,6 @@ const JOB_NAMES = [
   "refreshTvChildren",
   "cacheImages",
   "scheduledBackup",
-  "updateCheck",
   "refreshImdbRatings",
 ];
 
@@ -166,8 +164,7 @@ function getJobsHealth(): SystemHealthData["jobs"] {
     }
 
     const disabled =
-      (jobName === "scheduledBackup" && getSetting("scheduledBackups") !== "true") ||
-      (jobName === "updateCheck" && !isUpdateCheckEnabled());
+      (jobName === "scheduledBackup" && getSetting("scheduledBackups") !== "true");
 
     return {
       jobName,

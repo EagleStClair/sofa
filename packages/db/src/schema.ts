@@ -395,49 +395,6 @@ export const personFilmography = sqliteTable(
   ],
 );
 
-// ─── Integrations ───────────────────────────────────────────────────
-
-export const integrations = sqliteTable(
-  "integrations",
-  {
-    id: uuidPk(),
-    userId: text("userId")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    provider: text("provider").notNull(),
-    type: text("type", { enum: ["webhook", "list"] }).notNull(),
-    token: text("token").notNull().unique(),
-    enabled: int("enabled", { mode: "boolean" }).notNull().default(true),
-    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
-    lastEventAt: int("lastEventAt", { mode: "timestamp" }),
-  },
-  (table) => [
-    uniqueIndex("integrations_userId_provider").on(table.userId, table.provider),
-    uniqueIndex("integrations_token").on(table.token),
-  ],
-);
-
-export const integrationEvents = sqliteTable(
-  "integrationEvents",
-  {
-    id: uuidPk(),
-    integrationId: text("integrationId")
-      .notNull()
-      .references(() => integrations.id, { onDelete: "cascade" }),
-    eventType: text("eventType"),
-    mediaType: text("mediaType"),
-    mediaTitle: text("mediaTitle"),
-    status: text("status", {
-      enum: ["success", "ignored", "error"],
-    }).notNull(),
-    errorMessage: text("errorMessage"),
-    receivedAt: int("receivedAt", { mode: "timestamp" }).notNull(),
-  },
-  (table) => [
-    index("integrationEvents_integrationId_receivedAt").on(table.integrationId, table.receivedAt),
-  ],
-);
-
 // ─── Cron Run History ────────────────────────────────────────────────
 
 export const cronRuns = sqliteTable(

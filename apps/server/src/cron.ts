@@ -284,19 +284,17 @@ export function startJobs() {
   schedule("optimizeDb", "0 4 * * 0", async () => {
     const { optimizeDatabase } = await import("@sofa/db/client");
     const { deleteOldCronRuns } = await import("@sofa/db/queries/cron");
-    const { deleteOldIntegrationEvents } = await import("@sofa/db/queries/webhooks");
     const { deleteExpiredSessions, deleteExpiredVerifications } =
       await import("@sofa/db/queries/auth-cleanup");
 
     const retentionDate = new Date(Date.now() - 30 * DAY);
     const cronDeleted = deleteOldCronRuns(retentionDate);
-    const eventsDeleted = deleteOldIntegrationEvents(retentionDate);
     const sessionsDeleted = deleteExpiredSessions();
     const verificationsDeleted = deleteExpiredVerifications();
 
-    if (cronDeleted + eventsDeleted + sessionsDeleted + verificationsDeleted > 0) {
+    if (cronDeleted + sessionsDeleted + verificationsDeleted > 0) {
       log.info(
-        `Pruned ${cronDeleted} cron runs, ${eventsDeleted} integration events, ${sessionsDeleted} sessions, ${verificationsDeleted} verifications`,
+        `Pruned ${cronDeleted} cron runs, ${sessionsDeleted} sessions, ${verificationsDeleted} verifications`,
       );
     }
 
