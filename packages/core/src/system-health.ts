@@ -164,8 +164,7 @@ function getJobsHealth(): SystemHealthData["jobs"] {
     }
 
     const disabled =
-      (jobName === "scheduledBackup" && getSetting("scheduledBackups") !== "true") ||
-      (jobName === "updateCheck" && !isUpdateCheckEnabled());
+      (jobName === "scheduledBackup" && getSetting("scheduledBackups") !== "true");
 
     return {
       jobName,

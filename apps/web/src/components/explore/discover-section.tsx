@@ -25,12 +25,12 @@ import { orpc } from "@/lib/orpc/client";
 import type { DiscoverSearch } from "@/routes/_app/explore";
 
 const DECADE_PRESETS = [
-  { label: "2020s", min: 2020, max: 2029 },
-  { label: "2010s", min: 2010, max: 2019 },
-  { label: "2000s", min: 2000, max: 2009 },
-  { label: "1990s", min: 1990, max: 1999 },
-  { label: "1980s", min: 1980, max: 1989 },
-  { label: "1970s", min: 1970, max: 1979 },
+  { label: "2020+", min: 2020, max: null },
+  { label: "2010+", min: 2010, max: null },
+  { label: "2000+", min: 2000, max: null },
+  { label: "1990+", min: 1990, max: null },
+  { label: "1980+", min: 1980, max: null },
+  { label: "1970+", min: 1970, max: null },
   { label: "Pre-1970", min: 1900, max: 1969 },
 ] as const;
 
@@ -49,15 +49,7 @@ const SORT_OPTIONS = [
 
 const LANGUAGE_OPTIONS = [
   { code: "en", name: "English" },
-  { code: "es", name: "Spanish" },
-  { code: "fr", name: "French" },
-  { code: "de", name: "German" },
-  { code: "ja", name: "Japanese" },
-  { code: "ko", name: "Korean" },
-  { code: "zh", name: "Chinese" },
-  { code: "hi", name: "Hindi" },
-  { code: "it", name: "Italian" },
-  { code: "pt", name: "Portuguese" },
+  { code: "se", name: "Swedish" },
 ] as const;
 
 type DiscoverSortBy =
