@@ -10,10 +10,6 @@
   <a href="https://codecov.io/gh/jakejarvis/sofa"><img alt="Codecov" src="https://img.shields.io/codecov/c/github/jakejarvis/sofa?token=KJIUQAG94F" /></a>
   <a href="https://crowdin.com/project/sofa"><img alt="Crowdin" src="https://badges.crowdin.net/sofa/localized.svg" /></a>
 </p>
-<p align="center">
-  <a href="https://apps.apple.com/us/app/sofa-tv-movie-tracker/id6760432427"><img alt="App Store" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="40" width="120" /></a>
-  <a href="https://play.google.com/store/apps/details?id=com.jakejarvis.sofa"><img alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/f04efab4-a129-4392-be95-90c97372231f" height="40" width="135" /></a>
-</p>
 
 [Sofa](https://sofa.watch) is a self-hosted movie and TV tracker for nerds. Track what you've watched, discover what's next, and plug your data into your existing home media stack. All without anything leaving your homelab. 🍿
 
@@ -22,18 +18,12 @@
 ## What it does
 
 - Track episode-level progress for TV series and pick shows back up from a dedicated "Continue Watching" view
-- Mark movies as watched to discover more like them
-- Rate titles, browse cast and crew, and get recommendations based on what you are already tracking
+- Rate titles, browse cast and crew
 - Search TMDB and explore trending movies and shows without leaving your own instance
-- Show streaming availability from TMDB's US provider data
-- Automatically log completed watches from Plex, Jellyfin, or Emby webhooks
+- Show streaming availability from TMDB's provider data
 - Import existing watch history, ratings, and watchlists from Trakt, Simkl, or Letterboxd
-- Expose your watchlist as import lists for Sonarr and Radarr
 - Runs on SQLite with local image caching, built-in backups, and no external database requirement
 - Supports local accounts or OIDC SSO for private instances
-
-> [!NOTE]
-> Sofa is extremely US-centric right now, in terms of streaming providers, content rating systems, etc. Contributions to address this are more than welcome!
 
 ## Quick start
 
@@ -119,23 +109,6 @@ Set `BETTER_AUTH_URL` to the real external URL of your instance. This especially
 | `DISABLE_PASSWORD_LOGIN`     | No       | Set to `true` to hide email/password login when OIDC is configured                              |
 
 See [`.env.example`](./.env.example) for the full list.
-
-## Integrations
-
-Sofa ships with two kinds of integrations (for now): incoming watch activity and outgoing import lists.
-
-### Incoming watch activity
-
-- Plex: logs completed watches through a webhook URL generated in Sofa. Requires an active [Plex Pass](https://www.plex.tv/plex-pass/) license.
-- Jellyfin: works through the Jellyfin Webhook plugin.
-- Emby: logs completed watches through webhooks. Requires Emby Server 4.7.9+ and an [Emby Premiere](https://emby.media/premiere.html) subscription.
-
-These integrations are user-specific, so each user can connect their own media server account and watch history.
-
-### Outgoing import lists
-
-- Sonarr: expose your Sofa TV watchlist as a custom import list
-- Radarr: expose your Sofa movie watchlist as a custom import list
 
 ## Development
 

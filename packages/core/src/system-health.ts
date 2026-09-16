@@ -58,7 +58,6 @@ export interface SystemHealthData {
 const JOB_NAMES = [
   "nightlyRefreshLibrary",
   "refreshAvailability",
-  "refreshRecommendations",
   "refreshTvChildren",
   "cacheImages",
   "scheduledBackup",

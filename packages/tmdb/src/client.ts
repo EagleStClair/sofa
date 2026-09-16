@@ -296,39 +296,6 @@ export async function getWatchProviderList(type: "movie" | "tv", watchRegion?: s
   return (data as { results?: TmdbWatchProviderListItem[] }).results ?? [];
 }
 
-// ─── Recommendations & Similar ──────────────────────────────────────
-
-export async function getRecommendations(tmdbId: number, type: "movie" | "tv") {
-  if (type === "movie") {
-    const { data, error } = await client.GET("/3/movie/{movie_id}/recommendations", {
-      params: { path: { movie_id: tmdbId } },
-    });
-    if (error) throw new Error(`TMDB API error: movie/${tmdbId}/recommendations`);
-    return data as TmdbRecommendationResponse;
-  }
-  const { data, error } = await client.GET("/3/tv/{series_id}/recommendations", {
-    params: { path: { series_id: tmdbId } },
-  });
-  if (error) throw new Error(`TMDB API error: tv/${tmdbId}/recommendations`);
-  return data as TmdbRecommendationResponse;
-}
-
-export async function getSimilar(tmdbId: number, type: "movie" | "tv") {
-  if (type === "movie") {
-    const { data, error } = await client.GET("/3/movie/{movie_id}/similar", {
-      params: { path: { movie_id: tmdbId } },
-    });
-    if (error) throw new Error(`TMDB API error: movie/${tmdbId}/similar`);
-    return data as TmdbRecommendationResponse;
-  }
-  // Schema incorrectly types series_id as string here (number everywhere else)
-  const { data, error } = await client.GET("/3/tv/{series_id}/similar", {
-    params: { path: { series_id: String(tmdbId) } },
-  });
-  if (error) throw new Error(`TMDB API error: tv/${tmdbId}/similar`);
-  return data as TmdbRecommendationResponse;
-}
-
 // ─── Trending & Popular ─────────────────────────────────────────────
 
 export async function getTrending(

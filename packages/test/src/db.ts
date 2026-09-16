@@ -20,7 +20,6 @@ const {
   platforms,
   titleAvailability,
   userPlatforms,
-  titleRecommendations,
   integrations,
 } = schema;
 
@@ -240,25 +239,6 @@ export function insertIntegration(userId: string, provider: string, token = "tes
     })
     .returning()
     .get();
-}
-
-export function insertRecommendation(
-  titleId: string,
-  recommendedTitleId: string,
-  overrides: {
-    source?: "tmdb_recommendations" | "tmdb_similar";
-    rank?: number;
-  } = {},
-) {
-  testDb
-    .insert(titleRecommendations)
-    .values({
-      titleId,
-      recommendedTitleId,
-      source: overrides.source ?? "tmdb_recommendations",
-      rank: overrides.rank ?? 1,
-    })
-    .run();
 }
 
 export {

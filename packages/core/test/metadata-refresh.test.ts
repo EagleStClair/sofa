@@ -47,8 +47,6 @@ vi.mock("@sofa/tmdb/client", () => ({
   getMovieDetails: async () => {
     throw new Error("not used");
   },
-  getRecommendations: async () => ({ results: [] }),
-  getSimilar: async () => ({ results: [] }),
   getTvDetails: async () => {
     throw new Error("not used");
   },
