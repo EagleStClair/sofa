@@ -153,20 +153,6 @@ export const WatchHistoryInput = z
   })
   .meta({ description: "Filters for watch history chart data" });
 
-// ─── Integration inputs ────────────────────────────────────────
-
-export const CreateIntegrationInput = z
-  .object({
-    provider: z
-      .enum(["plex", "jellyfin", "emby", "sonarr", "radarr"])
-      .describe("Media server provider to integrate"),
-    enabled: z
-      .boolean()
-      .optional()
-      .describe("Whether the integration starts enabled (default: true)"),
-  })
-  .meta({ description: "Create a new media server integration" });
-
 // ─── Admin inputs ──────────────────────────────────────────────
 
 export const AdminSettingsOutput = z
@@ -174,34 +160,13 @@ export const AdminSettingsOutput = z
     registration: z.object({
       open: z.boolean().describe("Whether new user registration is open"),
     }),
-    updateCheck: z.object({
-      enabled: z.boolean().describe("Whether automatic update checks are enabled"),
-      updateAvailable: z.boolean().nullable().describe("Whether a newer version is available"),
-      currentVersion: z.string().nullable().describe("Currently running version"),
-      latestVersion: z.string().nullable().describe("Latest available version"),
-      releaseUrl: z.string().nullable().describe("URL to the latest release page"),
-      lastCheckedAt: z.string().nullable().describe("When the last check was performed (ISO 8601)"),
-    }),
-    telemetry: z.object({
-      enabled: z.boolean().describe("Whether anonymous telemetry is enabled"),
-      lastReportedAt: z
-        .string()
-        .nullable()
-        .describe("ISO 8601 timestamp of the last telemetry report"),
-    }),
   })
-  .meta({ description: "Combined admin settings for registration, update checks, and telemetry" });
+  .meta({ description: "Admin setting for registration" });
 
 export const AdminSettingsUpdateInput = z
   .object({
     registration: z
       .object({ open: z.boolean().describe("Whether new user registration is allowed") })
-      .optional(),
-    updateCheck: z
-      .object({ enabled: z.boolean().describe("Whether automatic update checks are enabled") })
-      .optional(),
-    telemetry: z
-      .object({ enabled: z.boolean().describe("Whether anonymous telemetry is enabled") })
       .optional(),
   })
   .meta({ description: "Partial update to admin settings" });
@@ -213,8 +178,6 @@ const cronJobName = z.enum([
   "refreshTvChildren",
   "cacheImages",
   "refreshCredits",
-  "updateCheck",
-  "telemetryReport",
 ]);
 
 export const TriggerJobInput = z
@@ -591,7 +554,7 @@ export const LibraryListInput = z
     ratingMax: z.number().int().min(1).max(5).optional().describe("Maximum user star rating"),
     yearMin: z.number().int().min(1900).max(2100).optional().describe("Minimum release year"),
     yearMax: z.number().int().min(1900).max(2100).optional().describe("Maximum release year"),
-    contentRating: z.string().optional().describe("Content rating filter (e.g. PG-13, TV-MA)"),
+    contentRating: z.string().optional().describe("Content rating filter"),
     onMyServices: z
       .boolean()
       .optional()
@@ -709,8 +672,6 @@ export const UpcomingOutput = z
   .meta({ description: "Upcoming episodes and movie releases for tracked titles" });
 
 // ─── Explore outputs ───────────────────────────────────────────
-
-export const PopularOutput = BrowseOutput;
 
 export const GenresOutput = z
   .object({
@@ -869,49 +830,6 @@ export const SystemStatusOutput = z
   });
 
 export const SystemHealthOutput = SystemHealthSchema;
-
-// ─── Integration outputs ───────────────────────────────────────
-
-export const IntegrationSchema = z
-  .object({
-    id: z.string().describe("Integration ID"),
-    provider: z.string().describe("Provider name (plex, jellyfin, etc.)"),
-    type: z
-      .enum(["webhook", "list"])
-      .describe("Integration type: webhook (Plex/Jellyfin/Emby) or list (Sonarr/Radarr)"),
-    token: z.string().describe("Webhook authentication token"),
-    enabled: z.boolean().describe("Whether the integration is active"),
-    lastEventAt: z.string().nullable().describe("Last received event timestamp (ISO 8601)"),
-    createdAt: z.string().describe("When the integration was created (ISO 8601)"),
-  })
-  .meta({ description: "A media server integration configuration" });
-
-export const IntegrationEventSchema = z
-  .object({
-    id: z.string().describe("Event ID"),
-    eventType: z.string().nullable().describe("Webhook event type"),
-    mediaType: z.string().nullable().describe("Media type from the event"),
-    mediaTitle: z.string().nullable().describe("Title from the event"),
-    status: z.enum(["success", "ignored", "error"]).describe("Event processing outcome"),
-    receivedAt: z.string().describe("When the event was received (ISO 8601)"),
-  })
-  .meta({ description: "A webhook or sync event from a media server" });
-
-export const IntegrationsListOutput = z
-  .object({
-    integrations: z.array(
-      IntegrationSchema.extend({
-        recentEvents: z
-          .array(IntegrationEventSchema)
-          .describe("Last 10 events for this integration"),
-      }),
-    ),
-  })
-  .meta({
-    description: "All integrations with their recent events",
-  });
-
-export const IntegrationOutput = IntegrationSchema;
 
 // ─── Admin outputs ─────────────────────────────────────────────
 
