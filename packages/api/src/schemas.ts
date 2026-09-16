@@ -16,9 +16,6 @@ export const FilenameParam = z.object({
 export const MediaTypeParam = z.object({
   type: z.enum(["movie", "tv"]).describe("Media type filter"),
 });
-export const TrendingTypeParam = z.object({
-  type: z.enum(["all", "movie", "tv"]).describe("Trending category: all, movie, or tv"),
-});
 
 export const RecentlyWatchedInput = z.object({
   limit: z.number().min(1).max(50).default(10),
@@ -712,29 +709,6 @@ export const UpcomingOutput = z
   .meta({ description: "Upcoming episodes and movie releases for tracked titles" });
 
 // ─── Explore outputs ───────────────────────────────────────────
-
-export const TrendingOutput = z
-  .object({
-    items: z.array(TmdbBrowseItem).describe("Trending titles"),
-    hero: z
-      .object({
-        id: z.string().describe("Internal title ID"),
-        tmdbId: z.number().describe("TMDB numeric ID"),
-        type: mediaType,
-        title: z.string().describe("Display title"),
-        overview: z.string().describe("Plot synopsis"),
-        backdropPath: z.string().nullable().describe("Backdrop image path"),
-        voteAverage: z.number().describe("Average rating (0-10)"),
-      })
-      .nullable()
-      .describe("Featured hero title for the spotlight banner"),
-    userStatuses: userStatusMap,
-    episodeProgress: episodeProgressMap,
-  })
-  .merge(PaginationMeta)
-  .meta({
-    description: "Trending titles with hero spotlight and user statuses",
-  });
 
 export const PopularOutput = BrowseOutput;
 

@@ -296,52 +296,6 @@ export async function getWatchProviderList(type: "movie" | "tv", watchRegion?: s
   return (data as { results?: TmdbWatchProviderListItem[] }).results ?? [];
 }
 
-// ─── Trending & Popular ─────────────────────────────────────────────
-
-export async function getTrending(
-  mediaType: "all" | "movie" | "tv",
-  timeWindow: "day" | "week" = "day",
-  page = 1,
-) {
-  // TMDB trending supports `page` but the generated schema omits it, so widen the query type.
-  const query = { page } as Record<string, unknown>;
-
-  if (mediaType === "movie") {
-    const { data, error } = await client.GET("/3/trending/movie/{time_window}", {
-      params: { path: { time_window: timeWindow }, query },
-    });
-    if (error) throw new Error("TMDB API error: trending/movie");
-    return data;
-  }
-  if (mediaType === "tv") {
-    const { data, error } = await client.GET("/3/trending/tv/{time_window}", {
-      params: { path: { time_window: timeWindow }, query },
-    });
-    if (error) throw new Error("TMDB API error: trending/tv");
-    return data;
-  }
-  const { data, error } = await client.GET("/3/trending/all/{time_window}", {
-    params: { path: { time_window: timeWindow }, query },
-  });
-  if (error) throw new Error("TMDB API error: trending/all");
-  return data;
-}
-
-export async function getPopular(type: "movie" | "tv", page = 1) {
-  if (type === "movie") {
-    const { data, error } = await client.GET("/3/movie/popular", {
-      params: { query: { page } },
-    });
-    if (error) throw new Error("TMDB API error: movie/popular");
-    return data;
-  }
-  const { data, error } = await client.GET("/3/tv/popular", {
-    params: { query: { page } },
-  });
-  if (error) throw new Error("TMDB API error: tv/popular");
-  return data;
-}
-
 // ─── Genres ─────────────────────────────────────────────────────────
 
 export async function getGenres(type: "movie" | "tv") {

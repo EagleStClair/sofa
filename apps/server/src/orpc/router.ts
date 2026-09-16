@@ -30,8 +30,6 @@ export const implementedRouter = {
     recentlyWatched: library.recentlyWatched,
   },
   discover: {
-    trending: discover.trending,
-    popular: discover.popular,
     search: discover.search,
     browse: discover.browse,
     genres: discover.genres,

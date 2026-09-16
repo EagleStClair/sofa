@@ -32,7 +32,6 @@ import {
   ParsePayloadInput,
   PersonDetailOutput,
   PlatformsListOutput,
-  PopularOutput,
   ProviderParam,
   PublicInfoOutput,
   PurgeImageCacheOutput,
@@ -45,8 +44,6 @@ import {
   SystemHealthOutput,
   SystemStatusOutput,
   TitleDetailOutput,
-  TrendingOutput,
-  TrendingTypeParam,
   TriggerJobInput,
   TriggerJobOutput,
   UnwatchInput,
@@ -246,32 +243,6 @@ export const contract = {
 
   // ─── Discover ───────────────────────────────────────────────
   discover: {
-    trending: oc
-      .route({
-        method: "GET",
-        path: "/discover/trending",
-        tags: ["Discover"],
-        summary: "Get trending titles",
-        description:
-          "Fetch today's trending movies and/or TV shows from TMDB, including a featured hero title and the user's statuses.",
-        successDescription: "Trending items, hero spotlight, and user statuses",
-      })
-      .input(TrendingTypeParam.merge(PageParam))
-      .output(TrendingOutput)
-      .errors(tmdbNotConfiguredError),
-    popular: oc
-      .route({
-        method: "GET",
-        path: "/discover/popular",
-        tags: ["Discover"],
-        summary: "Get popular titles",
-        description:
-          "Fetch currently popular movies or TV shows from TMDB with the user's tracking statuses.",
-        successDescription: "Popular items with user statuses",
-      })
-      .input(MediaTypeParam.merge(PageParam))
-      .output(PopularOutput)
-      .errors(tmdbNotConfiguredError),
     search: oc
       .route({
         method: "GET",
