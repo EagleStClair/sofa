@@ -6,7 +6,6 @@ import {
   IconServer2,
   IconShieldLock,
   IconUser,
-  IconWebhook,
 } from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -17,13 +16,11 @@ import { BackupScheduleSection } from "@/components/settings/backup-schedule-sec
 import { BackupSection } from "@/components/settings/backup-section";
 import { CacheSection } from "@/components/settings/danger-section";
 import { ImportsSection } from "@/components/settings/imports-section";
-import { IntegrationsSection } from "@/components/settings/integrations-section";
 import { LanguageSection } from "@/components/settings/language-section";
 import { RegistrationSection } from "@/components/settings/registration-section";
 import { SettingsShell } from "@/components/settings/settings-shell";
 import { StreamingServicesSection } from "@/components/settings/streaming-services-section";
 import { SystemHealthCards } from "@/components/settings/system-health-section";
-import { UpdateCheckSection } from "@/components/settings/update-check-section";
 import { TmdbLogo } from "@/components/tmdb-logo";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +32,6 @@ export const Route = createFileRoute("/_app/settings")({
   staleTime: 30_000,
   loader: async ({ context }) => {
     const promises: Promise<unknown>[] = [
-      context.queryClient.ensureQueryData(orpc.account.integrations.list.queryOptions()),
       context.queryClient.ensureQueryData(orpc.system.status.queryOptions()),
       context.queryClient.ensureQueryData(orpc.discover.platforms.queryOptions()),
       context.queryClient.ensureQueryData(orpc.account.platforms.queryOptions()),
@@ -102,17 +98,6 @@ function SettingsPage() {
         </div>
       </div>
 
-      {/* Integrations */}
-      <div>
-        <div className="mb-3 flex items-center gap-2">
-          <IconWebhook aria-hidden={true} className="text-muted-foreground size-4" />
-          <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            <Trans>Integrations</Trans>
-          </h2>
-        </div>
-        <IntegrationsSection />
-      </div>
-
       {/* Import */}
       <div>
         <div className="mb-3 flex items-center gap-2">
@@ -155,9 +140,6 @@ function SettingsPage() {
           <div className="space-y-2.5">
             <Card className="border-s-primary/30 border-s-2">
               <RegistrationSection />
-            </Card>
-            <Card className="border-s-primary/30 border-s-2">
-              <UpdateCheckSection />
             </Card>
           </div>
         </div>
