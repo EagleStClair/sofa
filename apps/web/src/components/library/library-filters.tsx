@@ -43,17 +43,11 @@ const DECADES = [
 ] as const;
 
 const CONTENT_RATINGS = [
-  "G",
-  "PG",
-  "PG-13",
-  "R",
-  "NC-17",
-  "TV-Y",
-  "TV-Y7",
-  "TV-G",
-  "TV-PG",
-  "TV-14",
-  "TV-MA",
+  "Btl",
+  "7",
+  "11",
+  "15",
+  "18",
 ];
 
 function Divider() {

@@ -22,4 +22,4 @@ export const TMDB_IMAGE_BASE_URL = process.env.TMDB_IMAGE_BASE_URL || "https://i
 
 // ─── Watch providers ──────────────────────────────────────────
 
-export const WATCH_REGION = process.env.WATCH_REGION || "US";
+export const WATCH_REGION = process.env.WATCH_REGION || "SE";
