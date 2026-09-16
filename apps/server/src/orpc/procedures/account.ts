@@ -6,13 +6,7 @@ import { ORPCError } from "@orpc/server";
 import { AppErrorCode } from "@sofa/api/errors";
 import { auth } from "@sofa/auth/server";
 import { AVATAR_DIR } from "@sofa/config";
-import {
-  createOrUpdateIntegration,
-  deleteIntegration as coreDeleteIntegration,
-  listUserIntegrations,
-  regenerateToken as coreRegenerateToken,
-  serializeIntegration,
-} from "@sofa/core/integrations";
+
 import { getUserPlatformIdList, updateUserPlatforms } from "@sofa/core/platforms";
 
 import { os } from "../context";
@@ -81,37 +75,4 @@ export const updatePlatformsHandler = os.account.updatePlatforms
   .use(authed)
   .handler(async ({ input, context }) => {
     updateUserPlatforms(context.user.id, input.platformIds);
-  });
-
-// ─── Integrations ─────────────────────────────────────────────
-
-export const integrationsList = os.account.integrations.list.use(authed).handler(({ context }) => {
-  return listUserIntegrations(context.user.id);
-});
-
-export const integrationsCreate = os.account.integrations.create
-  .use(authed)
-  .handler(({ input, context }) => {
-    return createOrUpdateIntegration(context.user.id, input.provider, input.enabled);
-  });
-
-export const integrationsDelete = os.account.integrations.delete
-  .use(authed)
-  .handler(({ input, context }) => {
-    coreDeleteIntegration(context.user.id, input.provider);
-  });
-
-export const integrationsRegenerateToken = os.account.integrations.regenerateToken
-  .use(authed)
-  .handler(({ input, context }) => {
-    const row = coreRegenerateToken(context.user.id, input.provider);
-
-    if (!row) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Integration not found",
-        data: { code: AppErrorCode.INTEGRATION_NOT_FOUND },
-      });
-    }
-
-    return serializeIntegration(row);
   });

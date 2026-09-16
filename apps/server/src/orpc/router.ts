@@ -44,12 +44,6 @@ export const implementedRouter = {
     removeAvatar: account.removeAvatar,
     platforms: account.platforms,
     updatePlatforms: account.updatePlatformsHandler,
-    integrations: {
-      list: account.integrationsList,
-      create: account.integrationsCreate,
-      delete: account.integrationsDelete,
-      regenerateToken: account.integrationsRegenerateToken,
-    },
   },
   system: {
     publicInfo: system.publicInfo,
