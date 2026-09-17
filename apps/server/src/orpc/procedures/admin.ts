@@ -17,8 +17,6 @@ import {
 } from "@sofa/core/cache";
 import { getSetting, setSetting } from "@sofa/core/settings";
 import { getSystemHealth } from "@sofa/core/system-health";
-import { isTelemetryEnabled } from "@sofa/core/telemetry";
-import { getCachedUpdateCheck, isUpdateCheckEnabled } from "@sofa/core/update-check";
 
 import { pauseJobs, rescheduleBackup, resumeJobs, triggerJob as triggerCronJob } from "../../cron";
 import { os } from "../context";
@@ -27,24 +25,10 @@ import { admin } from "../middleware";
 // ─── Settings (consolidated) ──────────────────────────────────
 
 export const settingsGet = os.admin.settings.get.use(admin).handler(() => {
-  const updateCheckEnabled = isUpdateCheckEnabled();
-  const check = updateCheckEnabled ? getCachedUpdateCheck() : null;
 
   return {
     registration: {
       open: getSetting("registrationOpen") === "true",
-    },
-    updateCheck: {
-      enabled: updateCheckEnabled,
-      updateAvailable: check?.updateAvailable ?? null,
-      currentVersion: check?.currentVersion ?? null,
-      latestVersion: check?.latestVersion ?? null,
-      releaseUrl: check?.releaseUrl ?? null,
-      lastCheckedAt: check?.lastCheckedAt ?? null,
-    },
-    telemetry: {
-      enabled: isTelemetryEnabled(),
-      lastReportedAt: getSetting("telemetryLastReportedAt") ?? null,
     },
   };
 });
@@ -52,12 +36,6 @@ export const settingsGet = os.admin.settings.get.use(admin).handler(() => {
 export const settingsUpdate = os.admin.settings.update.use(admin).handler(({ input }) => {
   if (input.registration) {
     setSetting("registrationOpen", String(input.registration.open));
-  }
-  if (input.updateCheck) {
-    setSetting("updateCheckEnabled", String(input.updateCheck.enabled));
-  }
-  if (input.telemetry) {
-    setSetting("telemetryEnabled", String(input.telemetry.enabled));
   }
 });
 
