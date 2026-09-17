@@ -7,7 +7,6 @@ import {
   insertEpisodeWatch,
   insertMovieWatch,
   insertRating,
-  insertRecommendation,
   insertStatus,
   insertTitle,
   insertTvShow,
@@ -17,8 +16,6 @@ import {
 import {
   getContinueWatchingFeed,
   getNewAvailableFeed,
-  getRecommendationsFeed,
-  getRecommendationsForTitle,
   getUserStats,
   getWatchCount,
   getWatchHistory,

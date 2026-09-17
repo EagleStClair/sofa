@@ -18,7 +18,6 @@
     "./library": "./src/library.ts",
     "./imports": "./src/imports/index.ts",
     "./imports/parsers": "./src/imports/parsers.ts",
-    "./integrations": "./src/integrations.ts",
     "./lists": "./src/lists.ts",
     "./metadata": "./src/metadata.ts",
     "./person": "./src/person.ts",
