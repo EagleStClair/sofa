@@ -5,11 +5,6 @@ import { z } from "zod";
 export const IdParam = z.object({
   id: z.string().min(1).describe("Internal UUIDv7 identifier"),
 });
-export const ProviderParam = z.object({
-  provider: z
-    .enum(["plex", "jellyfin", "emby", "sonarr", "radarr"])
-    .describe("Media server provider type"),
-});
 export const FilenameParam = z.object({
   filename: z.string().min(1).describe("Backup filename"),
 });

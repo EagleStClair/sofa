@@ -10,7 +10,6 @@ import {
   BackupsListOutput,
   ContinueWatchingOutput,
   CreateImportJobInput,
-  CreateIntegrationInput,
   DiscoverInput,
   DiscoverOutput,
   FilenameParam,
@@ -19,8 +18,6 @@ import {
   ImportJobEvent,
   ImportJobSchema,
   ImportPreviewSchema,
-  IntegrationOutput,
-  IntegrationsListOutput,
   LibraryGenresOutput,
   LibraryListInput,
   LibraryListOutput,
@@ -32,7 +29,6 @@ import {
   ParsePayloadInput,
   PersonDetailOutput,
   PlatformsListOutput,
-  ProviderParam,
   PublicInfoOutput,
   PurgeImageCacheOutput,
   PurgeMetadataCacheOutput,
@@ -372,59 +368,6 @@ export const contract = {
       })
       .input(UpdateUserPlatformsInput)
       .output(z.void()),
-    integrations: {
-      list: oc
-        .route({
-          method: "GET",
-          path: "/account/integrations",
-          tags: ["Account"],
-          summary: "List integrations",
-          description:
-            "Fetch all configured media server integrations for the current user, including recent webhook/sync events for each.",
-          successDescription: "Integrations with their recent events",
-        })
-        .output(IntegrationsListOutput),
-      create: oc
-        .route({
-          method: "POST",
-          path: "/account/integrations",
-          tags: ["Account"],
-          summary: "Create or update integration",
-          description:
-            "Create a new media server integration or update an existing one. Generates a unique webhook token for the provider.",
-          successDescription: "Created or updated integration with token",
-        })
-        .input(CreateIntegrationInput)
-        .output(IntegrationOutput),
-      delete: oc
-        .route({
-          method: "DELETE",
-          path: "/account/integrations/{provider}",
-          tags: ["Account"],
-          summary: "Delete integration",
-          description: "Remove a media server integration and all its event history.",
-        })
-        .input(ProviderParam)
-        .output(z.void()),
-      regenerateToken: oc
-        .route({
-          method: "POST",
-          path: "/account/integrations/{provider}/regenerate-token",
-          tags: ["Account"],
-          summary: "Regenerate webhook token",
-          description:
-            "Generate a new webhook token for an integration. The old token is immediately invalidated.",
-          successDescription: "Integration with new token",
-        })
-        .input(ProviderParam)
-        .output(IntegrationOutput)
-        .errors({
-          NOT_FOUND: {
-            message: "Integration not found",
-            data: appErrorData(AppErrorCode.INTEGRATION_NOT_FOUND),
-          },
-        }),
-    },
   },
 
   // ─── System ─────────────────────────────────────────────────
