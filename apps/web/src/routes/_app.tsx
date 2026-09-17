@@ -39,7 +39,6 @@ function AppLayout() {
       </div>
       <MobileTabBar />
       <CommandPalette />
-      {session.user.role === "admin" && <UpdateToast data={updateCheck} />}
     </>
   );
 }
