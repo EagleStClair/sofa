@@ -3,7 +3,6 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { CommandPalette } from "@/components/command-palette";
 import { MobileTabBar, NavBar } from "@/components/nav-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UpdateToast } from "@/components/update-toast";
 import { authClient } from "@/lib/auth/client";
 import { client } from "@/lib/orpc/client";
 
@@ -12,23 +11,14 @@ export const Route = createFileRoute("/_app")({
     const { data: session } = await authClient.getSession();
     if (!session) throw redirect({ to: "/login" });
 
-    let updateCheck = null;
-    if (session.user.role === "admin") {
-      try {
-        const settings = await client.admin.settings.get({});
-        updateCheck = settings.updateCheck;
-      } catch {
-        // Silently ignore — update check is non-critical
-      }
-    }
-    return { session, updateCheck };
+    return { session };
   },
   component: AppLayout,
   pendingComponent: AppShellSkeleton,
 });
 
 function AppLayout() {
-  const { session, updateCheck } = Route.useRouteContext();
+  const { session } = Route.useRouteContext();
   return (
     <>
       <div className="relative z-0 min-h-screen overflow-x-clip pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
@@ -49,7 +39,6 @@ function AppLayout() {
       </div>
       <MobileTabBar />
       <CommandPalette />
-      {session.user.role === "admin" && <UpdateToast data={updateCheck} />}
     </>
   );
 }

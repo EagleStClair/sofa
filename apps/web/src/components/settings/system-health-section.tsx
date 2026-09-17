@@ -313,7 +313,6 @@ function BackgroundJobsCard({
     refreshTvChildren: t`TV episodes`,
     cacheImages: t`Image cache`,
     scheduledBackup: t`Backup`,
-    updateCheck: t`Update check`,
     refreshImdbRatings: t`Refresh IMDb ratings`,
   };
 
