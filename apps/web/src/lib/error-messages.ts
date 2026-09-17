@@ -22,7 +22,6 @@ export function appErrorMessages(
   return {
     TITLE_NOT_FOUND: t`Title not found`,
     PERSON_NOT_FOUND: t`Person not found`,
-    INTEGRATION_NOT_FOUND: t`Integration not found`,
     BACKUP_NOT_FOUND: t`Backup not found`,
     BACKUP_DELETE_FAILED: t`Failed to delete backup`,
     BACKUP_RESTORE_FAILED: t`Backup restoration failed`,

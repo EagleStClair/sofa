@@ -80,21 +80,8 @@ export default function PrivacyPolicyPage() {
       </p>
 
       <h3>Sofa Public API</h3>
-      <p>Your server may contact the Sofa public API for two purposes:</p>
+      <p>Your server may contact the Sofa public API:</p>
       <ul>
-        <li>
-          <strong>Update checks</strong> &mdash; a periodic request to{" "}
-          <code>public-api.sofa.watch</code> to check for new releases. Only a user agent string is
-          sent; no instance or user data is included. Can be disabled in admin settings.
-        </li>
-        <li>
-          <strong>Telemetry</strong> &mdash; an optional, anonymous report sent at most once every
-          24 hours. It includes a random instance ID, the Sofa version, CPU architecture, bucketed
-          user and title counts (e.g. &ldquo;2-5&rdquo;), and which optional features are enabled.
-          No personal data, watch history, or exact counts are included. Telemetry is{" "}
-          <strong>disabled by default</strong> and must be explicitly enabled by an admin. See the{" "}
-          <Link href="/docs/telemetry">telemetry documentation</Link> for full details.
-        </li>
         <li>
           <strong>Import helper</strong> &mdash; when importing watch history from Trakt or Simkl,
           your server proxies OAuth device-code authorization through{" "}
@@ -103,28 +90,6 @@ export default function PrivacyPolicyPage() {
           personal data, watch history, or instance identifiers are included in the requests.
         </li>
       </ul>
-
-      <h3>PostHog (Mobile App Only)</h3>
-      <p>
-        The native iOS and Android app includes optional, anonymous analytics powered by PostHog.
-        This tracks screen views and app lifecycle events &mdash; no personal data, search queries,
-        or watch history is collected. Analytics is <strong>disabled by default</strong> and
-        requires explicit opt-in. You can change your preference at any time in the app&rsquo;s
-        settings.
-      </p>
-
-      <h3>Media Server Integrations</h3>
-      <p>
-        If you connect Plex, Jellyfin, or Emby, those services send webhook events <em>to</em> your
-        Sofa server when you finish watching something. This data is processed and stored locally.
-        Sofa does not send data back to your media servers.
-      </p>
-
-      <h3>Sonarr & Radarr</h3>
-      <p>
-        If you use Sonarr or Radarr integration, those services pull your watchlist from Sofa via
-        authenticated API requests. Sofa does not push data to them.
-      </p>
 
       <h2>Cookies</h2>
       <p>

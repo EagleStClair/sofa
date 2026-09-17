@@ -26,39 +26,6 @@ icon: LifeBuoy
 
 Sofa includes a 300ms delay between TMDB requests per title to stay within API limits. If you see intermittent errors during large library refreshes, the affected titles will be retried on the next scheduled run. Avoid manually triggering multiple jobs at the same time.
 
-## Webhook Integration Issues
-
-### Watches Not Being Logged
-
-Check the **event log** in Settings → Integrations → your provider. Common errors:
-
-- **"Could not resolve TMDB ID"** — The media's external IDs (TMDB, IMDB, or TVDB) in your media server don't match a TMDB entry. Refresh the metadata in your media server.
-- **"Season/episode not found"** — The show's season data hasn't been loaded in Sofa. Search for the show in Sofa first to trigger a metadata import, then try playing again.
-- **"Failed to import"** — A TMDB API error occurred. Check the TMDB connection in [System Health](/docs/admin#status).
-
-### Events Showing as "Ignored"
-
-- **"Duplicate watch within 5 minutes"** — Normal deduplication. Some media servers send the same event multiple times.
-- **Partial playback** — For Jellyfin and Emby, only playback events with `PlayedToCompletion: true` are processed. Partially watched content is intentionally ignored.
-- **Wrong event type** — For Plex, only `media.scrobble` events are processed. Test events and other event types are ignored.
-
-### Plex
-
-- Plex Pass is required for webhooks.
-- Configure webhooks at [app.plex.tv → Settings → Webhooks](https://app.plex.tv/desktop/#!/settings/webhooks).
-- Plex's "Test Webhook" button sends a non-scrobble event that Sofa will ignore — this is expected.
-
-### Jellyfin
-
-- The [Webhook plugin](https://github.com/jellyfin/jellyfin-plugin-webhook) must be installed from the Jellyfin plugin catalog (Dashboard → Plugins → Catalog).
-- Ensure the **Playback Stop** notification type is enabled in the webhook destination settings.
-- Restart Jellyfin after installing the plugin.
-
-### Emby
-
-- Emby Premiere and Emby Server 4.7.9+ are required.
-- Both `playback.stop` and `PlaybackStop` event formats are supported — no special configuration needed.
-
 ## Image Caching Issues
 
 ### Images Not Loading

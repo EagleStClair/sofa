@@ -4,12 +4,10 @@
     "index",
     "using-sofa",
     "configuration",
-    "integrations",
     "admin",
     "troubleshooting",
     "mobile-app",
     "translations",
-    "telemetry",
     "---API Reference---",
     "...api",
     "external:[openapi.json](/openapi.json)"

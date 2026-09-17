@@ -20,7 +20,6 @@ const {
   platforms,
   titleAvailability,
   userPlatforms,
-  integrations,
 } = schema;
 
 export const testClient = new Database(":memory:");
@@ -223,22 +222,6 @@ export function insertTitleAvailability(
 
 export function insertUserPlatform(userId: string, platformId: string) {
   testDb.insert(userPlatforms).values({ userId, platformId }).run();
-}
-
-export function insertIntegration(userId: string, provider: string, token = "test-token") {
-  const type = provider === "sonarr" || provider === "radarr" ? "list" : "webhook";
-  return testDb
-    .insert(integrations)
-    .values({
-      userId,
-      provider,
-      type,
-      token,
-      enabled: true,
-      createdAt: new Date(),
-    })
-    .returning()
-    .get();
 }
 
 export {
