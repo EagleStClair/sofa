@@ -130,15 +130,7 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
 
   const languageNames: Record<string, string> = {
     en: t`English`,
-    es: t`Spanish`,
-    fr: t`French`,
-    de: t`German`,
-    ja: t`Japanese`,
-    ko: t`Korean`,
-    zh: t`Chinese`,
-    hi: t`Hindi`,
-    it: t`Italian`,
-    pt: t`Portuguese`,
+    se: t`Swedish`,
   };
 
   function handleDecadeChange(value: string | null) {
@@ -398,7 +390,7 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
             setUsingMyServices(true);
           }}
         >
-          {t`My services`}
+          {t`My apps`}
         </Button>
 
         <Button

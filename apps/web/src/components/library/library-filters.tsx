@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { orpc } from "@/lib/orpc/client";
 
 export interface LibraryFiltersProps {
@@ -21,8 +20,6 @@ export interface LibraryFiltersProps {
     statuses?: string[];
     type?: string;
     genreId?: number;
-    ratingMin?: number;
-    ratingMax?: number;
     yearMin?: number;
     yearMax?: number;
     contentRating?: string;
@@ -211,35 +208,6 @@ export function LibraryFilters({
         </SelectContent>
       </Select>
 
-      {/* Rating */}
-      <Select
-        value={filters.ratingMin !== undefined ? String(filters.ratingMin) : ""}
-        onValueChange={(v) => onFilterChange("ratingMin", v === "" ? undefined : Number(v))}
-        modal={false}
-        aria-label={t`Rating`}
-      >
-        <SelectTrigger
-          size="sm"
-          data-active={filters.ratingMin != null ? "" : undefined}
-          className="data-[active]:border-primary/40 data-[active]:text-foreground"
-        >
-          <SelectValue>
-            {(value: string | null) => {
-              if (!value) return t`Rating`;
-              return `${value}\u2605+`;
-            }}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="p-1">
-          <SelectItem value="">{t`Any`}</SelectItem>
-          <SelectItem value="1">1★+</SelectItem>
-          <SelectItem value="2">2★+</SelectItem>
-          <SelectItem value="3">3★+</SelectItem>
-          <SelectItem value="4">4★+</SelectItem>
-          <SelectItem value="5">5★</SelectItem>
-        </SelectContent>
-      </Select>
-
       {/* Year */}
       <Select value={yearValue} onValueChange={handleYearChange} modal={false} aria-label={t`Year`}>
         <SelectTrigger
@@ -293,27 +261,21 @@ export function LibraryFilters({
 
       <Divider />
 
-      {/* On my services */}
-      <label className="flex cursor-pointer items-center gap-1.5">
-        <Switch
-          size="sm"
-          checked={filters.onMyServices ?? false}
-          onCheckedChange={(checked) => onFilterChange("onMyServices", checked || undefined)}
-          aria-label={t`On my services`}
-        />
-        <span className="text-muted-foreground text-[11px]">{t`On my services`}</span>
-      </label>
+      <Button
+        variant={filters.onMyServices ? "default" : "outline"}
+        size="sm"
+        onClick={() => onFilterChange("onMyServices", !filters.onMyServices || undefined)}
+      >
+        {t`My apps`}
+      </Button>
 
-      {/* Rent/buy available */}
-      <label className="flex cursor-pointer items-center gap-1.5">
-        <Switch
-          size="sm"
-          checked={filters.rentBuyAvailable ?? false}
-          onCheckedChange={(checked) => onFilterChange("rentBuyAvailable", checked || undefined)}
-          aria-label={t`Rent/buy`}
-        />
-        <span className="text-muted-foreground text-[11px]">{t`Rent/buy`}</span>
-      </label>
+      <Button
+        variant={filters.rentBuyAvailable ? "default" : "outline"}
+        size="sm"
+        onClick={() => onFilterChange("rentBuyAvailable", !filters.rentBuyAvailable || undefined)}
+      >
+        {t`Rent/buy`}
+      </Button>
 
       {/* Clear */}
       {activeFilterCount > 0 && (
