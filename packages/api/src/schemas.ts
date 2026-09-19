@@ -538,7 +538,6 @@ export const ContinueWatchingOutput = z
 
 export const LibraryListInput = z
   .object({
-    search: z.string().max(200).optional().describe("Search within library by title name"),
     statuses: z
       .array(displayStatusEnum)
       .optional()

@@ -80,12 +80,9 @@ function displayStatusExpr() {
 // ─── Filtered library feed ──────────────────────────────────────────
 
 export interface LibraryFilters {
-  search?: string;
   statuses?: string[];
   type?: "movie" | "tv";
   genreId?: number;
-  ratingMin?: number;
-  ratingMax?: number;
   yearMin?: number;
   yearMax?: number;
   contentRating?: string;
@@ -109,10 +106,6 @@ export function getFilteredLibrary(userId: string, filters: LibraryFilters) {
   // Build WHERE conditions
   const conditions = [eq(userTitleStatus.userId, userId)];
 
-  if (filters.search) {
-    conditions.push(sql`${titles.title} LIKE ${"%" + filters.search + "%"}`);
-  }
-
   if (filters.type) {
     conditions.push(eq(titles.type, filters.type));
   }
@@ -121,16 +114,6 @@ export function getFilteredLibrary(userId: string, filters: LibraryFilters) {
     conditions.push(
       sql`EXISTS (SELECT 1 FROM ${titleGenres} WHERE ${titleGenres.titleId} = ${titles.id} AND ${titleGenres.genreId} = ${filters.genreId})`,
     );
-  }
-
-  if (filters.ratingMin != null || filters.ratingMax != null) {
-    conditions.push(sql`${userRatings.ratingStars} IS NOT NULL`);
-    if (filters.ratingMin != null) {
-      conditions.push(gte(userRatings.ratingStars, filters.ratingMin));
-    }
-    if (filters.ratingMax != null) {
-      conditions.push(lte(userRatings.ratingStars, filters.ratingMax));
-    }
   }
 
   if (filters.yearMin != null || filters.yearMax != null) {

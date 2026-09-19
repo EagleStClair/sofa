@@ -7,7 +7,6 @@ import { authed } from "../middleware";
 
 export const list = os.library.list.use(authed).handler(({ input, context }) => {
   const result = getFilteredLibraryFeed(context.user.id, {
-    search: input.search,
     statuses: input.statuses,
     type: input.type,
     genreId: input.genreId,
