@@ -40,23 +40,10 @@ const RATING_PRESETS = [
   { label: "5+", value: 5 },
 ] as const;
 
-const SORT_OPTIONS = [
-  { value: "popularity.desc", labelKey: "Most popular" },
-  { value: "vote_average.desc", labelKey: "Highest rated" },
-  { value: "primary_release_date.desc", labelKey: "Newest" },
-  { value: "primary_release_date.asc", labelKey: "Oldest" },
-] as const;
-
 const LANGUAGE_OPTIONS = [
   { code: "en", name: "English" },
   { code: "se", name: "Swedish" },
 ] as const;
-
-type DiscoverSortBy =
-  | "popularity.desc"
-  | "vote_average.desc"
-  | "primary_release_date.desc"
-  | "primary_release_date.asc";
 
 interface DiscoverSectionProps {
   search: DiscoverSearch;
@@ -71,7 +58,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
   const yearMin = search.yearMin;
   const yearMax = search.yearMax;
   const ratingMin = search.ratingMin;
-  const sortBy = search.sortBy as DiscoverSortBy | undefined;
   const language = search.language;
   const platformIds = search.platformIds ?? [];
   const hideSeen = search.hideSeen ?? true;
@@ -89,7 +75,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
         yearMin,
         yearMax,
         ratingMin,
-        sortBy,
         language,
         platformIds,
         page: pageParam,
@@ -121,24 +106,9 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
   const genres = genreData?.genres ?? [];
   const providers = providerData?.platforms ?? [];
 
-  const sortLabels: Record<string, string> = {
-    "popularity.desc": t`Most popular`,
-    "vote_average.desc": t`Highest rated`,
-    "primary_release_date.desc": t`Newest`,
-    "primary_release_date.asc": t`Oldest`,
-  };
-
   const languageNames: Record<string, string> = {
     en: t`English`,
-    es: t`Spanish`,
-    fr: t`French`,
-    de: t`German`,
-    ja: t`Japanese`,
-    ko: t`Korean`,
-    zh: t`Chinese`,
-    hi: t`Hindi`,
-    it: t`Italian`,
-    pt: t`Portuguese`,
+    se: t`Swedish`,
   };
 
   function handleDecadeChange(value: string | null) {
@@ -156,10 +126,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
     onSearchChange({ ratingMin: value ? Number(value) : undefined });
   }
 
-  function handleSortChange(value: string | null) {
-    onSearchChange({ sortBy: (value || undefined) as DiscoverSortBy | undefined });
-  }
-
   function handleLanguageChange(value: string | null) {
     onSearchChange({ language: value || undefined });
   }
@@ -172,7 +138,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
     genreId != null ||
     yearMin != null ||
     ratingMin != null ||
-    sortBy != null ||
     language != null ||
     platformIds.length > 0 ||
     !hideSeen;
@@ -183,7 +148,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
       yearMin: undefined,
       yearMax: undefined,
       ratingMin: undefined,
-      sortBy: undefined,
       language: undefined,
       platformIds: undefined,
       hideSeen: undefined,
@@ -299,34 +263,6 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
         </Select>
 
         <Select
-          value={sortBy ?? ""}
-          onValueChange={handleSortChange}
-          modal={false}
-          aria-label={t`Sort`}
-        >
-          <SelectTrigger
-            size="sm"
-            data-active={sortBy ? "" : undefined}
-            className="data-[active]:border-primary/40 data-[active]:text-foreground"
-          >
-            <SelectValue>
-              {(value: string | null) => {
-                if (!value) return t`Sort`;
-                return sortLabels[value] ?? t`Sort`;
-              }}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="p-1">
-            <SelectItem value="">{t`Default`}</SelectItem>
-            {SORT_OPTIONS.map((s) => (
-              <SelectItem key={s.value} value={s.value}>
-                {sortLabels[s.value]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
           value={language ?? ""}
           onValueChange={handleLanguageChange}
           modal={false}
@@ -398,7 +334,7 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
             setUsingMyServices(true);
           }}
         >
-          {t`My services`}
+          {t`My apps`}
         </Button>
 
         <Button

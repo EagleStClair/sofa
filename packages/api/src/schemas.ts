@@ -538,15 +538,12 @@ export const ContinueWatchingOutput = z
 
 export const LibraryListInput = z
   .object({
-    search: z.string().max(200).optional().describe("Search within library by title name"),
     statuses: z
       .array(displayStatusEnum)
       .optional()
       .describe("Filter by display statuses (multi-select)"),
     type: z.enum(["movie", "tv"]).optional().describe("Filter by media type"),
     genreId: z.number().int().optional().describe("Filter by TMDB genre ID"),
-    ratingMin: z.number().int().min(1).max(5).optional().describe("Minimum user star rating"),
-    ratingMax: z.number().int().min(1).max(5).optional().describe("Maximum user star rating"),
     yearMin: z.number().int().min(1900).max(2100).optional().describe("Minimum release year"),
     yearMax: z.number().int().min(1900).max(2100).optional().describe("Maximum release year"),
     contentRating: z.string().optional().describe("Content rating filter"),

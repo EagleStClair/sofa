@@ -1,6 +1,6 @@
 import { plural } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react/macro";
-import { IconChevronDown, IconFilter, IconSearch, IconSortDescending } from "@tabler/icons-react";
+import { IconChevronDown, IconFilter, IconSortDescending } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 
 import { LibraryFilters, type LibraryFiltersProps } from "@/components/library/library-filters";
@@ -13,11 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 
 export interface LibraryToolbarProps {
-  search: string;
-  onSearchChange: (value: string) => void;
   filters: LibraryFiltersProps["filters"];
   onFilterChange: (key: string, value: unknown) => void;
   onClearAll: () => void;
@@ -29,8 +26,6 @@ export interface LibraryToolbarProps {
 }
 
 export function LibraryToolbar({
-  search,
-  onSearchChange,
   filters,
   onFilterChange,
   onClearAll,
@@ -59,19 +54,6 @@ export function LibraryToolbar({
   return (
     <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 sm:max-w-xs">
-          <IconSearch
-            aria-hidden={true}
-            className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2"
-          />
-          <Input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t`Search library...`}
-            className="py-3 pl-7"
-            aria-label={t`Search library`}
-          />
-        </div>
 
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-[13px]">
