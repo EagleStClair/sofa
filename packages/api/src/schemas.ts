@@ -173,6 +173,7 @@ const cronJobName = z.enum([
   "refreshTvChildren",
   "cacheImages",
   "refreshCredits",
+  "refreshImdbRatings",
 ]);
 
 export const TriggerJobInput = z
