@@ -11,8 +11,6 @@ export const list = os.library.list.use(authed).handler(({ input, context }) => 
     statuses: input.statuses,
     type: input.type,
     genreId: input.genreId,
-    ratingMin: input.ratingMin,
-    ratingMax: input.ratingMax,
     yearMin: input.yearMin,
     yearMax: input.yearMax,
     contentRating: input.contentRating,
