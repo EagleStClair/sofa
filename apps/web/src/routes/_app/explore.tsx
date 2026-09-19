@@ -12,7 +12,6 @@ const discoverSearchSchema = z.object({
   yearMin: z.number().optional().catch(undefined),
   yearMax: z.number().optional().catch(undefined),
   ratingMin: z.number().optional().catch(undefined),
-  sortBy: z.string().optional().catch(undefined),
   language: z.string().optional().catch(undefined),
   platformIds: z.array(z.string()).optional().catch(undefined),
   hideSeen: z.boolean().optional().catch(undefined),

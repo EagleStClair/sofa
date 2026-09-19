@@ -3,7 +3,7 @@ import { IconBooks, IconFilterOff } from "@tabler/icons-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
 import { TitleGrid, TitleGridSectionSkeleton } from "@/components/dashboard/title-grid";
@@ -13,12 +13,9 @@ import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
 
 const librarySearchSchema = z.object({
-  search: z.string().optional().catch(undefined),
   statuses: z.array(z.string()).optional().catch(undefined).default(["in_watchlist"]),
   type: z.enum(["movie", "tv"]).optional().catch(undefined),
   genreId: z.number().optional().catch(undefined),
-  ratingMin: z.number().optional().catch(undefined),
-  ratingMax: z.number().optional().catch(undefined),
   yearMin: z.number().optional().catch(undefined),
   yearMax: z.number().optional().catch(undefined),
   contentRating: z.string().optional().catch(undefined),
@@ -32,12 +29,9 @@ type LibrarySearch = z.infer<typeof librarySearchSchema>;
 
 function buildLibraryQueryInput(search: LibrarySearch) {
   const input: Record<string, unknown> = {};
-  if (search.search) input.search = search.search;
   if (search.statuses?.length) input.statuses = search.statuses;
   if (search.type) input.type = search.type;
   if (search.genreId) input.genreId = search.genreId;
-  if (search.ratingMin) input.ratingMin = search.ratingMin;
-  if (search.ratingMax) input.ratingMax = search.ratingMax;
   if (search.yearMin) input.yearMin = search.yearMin;
   if (search.yearMax) input.yearMax = search.yearMax;
   if (search.contentRating) input.contentRating = search.contentRating;
@@ -86,23 +80,6 @@ function LibraryPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
-  // Debounced search — update URL 300ms after the user stops typing
-  const [prevSearchParam, setPrevSearchParam] = useState(search.search);
-  const [localSearch, setLocalSearch] = useState(search.search ?? "");
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  // Sync localSearch when URL params change externally (back/forward navigation)
-  if (prevSearchParam !== search.search) {
-    setPrevSearchParam(search.search);
-    setLocalSearch(search.search ?? "");
-  }
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
   const updateSearch = useCallback(
     (updates: Partial<LibrarySearch>) => {
       void navigate({
@@ -127,15 +104,12 @@ function LibraryPage() {
       const updates: Partial<LibrarySearch> = {
         [key]: value === "" || value === false ? undefined : value,
       };
-      // Clear ratingMax when ratingMin changes (UI only exposes ratingMin now)
-      if (key === "ratingMin") updates.ratingMax = undefined;
       updateSearch(updates);
     },
     [updateSearch],
   );
 
   const handleClearAll = useCallback(() => {
-    setLocalSearch("");
     void navigate({ search: {}, replace: true });
   }, [navigate]);
 
@@ -173,7 +147,6 @@ function LibraryPage() {
     search.statuses?.length ? 1 : 0,
     search.type ? 1 : 0,
     search.genreId ? 1 : 0,
-    search.ratingMin || search.ratingMax ? 1 : 0,
     search.yearMin || search.yearMax ? 1 : 0,
     search.contentRating ? 1 : 0,
     search.onMyServices ? 1 : 0,
@@ -188,20 +161,10 @@ function LibraryPage() {
       </div>
 
       <LibraryToolbar
-        search={localSearch}
-        onSearchChange={(value: string) => {
-          setLocalSearch(value);
-          if (debounceRef.current) clearTimeout(debounceRef.current);
-          debounceRef.current = setTimeout(() => {
-            updateSearch({ search: value || undefined });
-          }, 300);
-        }}
         filters={{
           statuses: search.statuses,
           type: search.type,
           genreId: search.genreId,
-          ratingMin: search.ratingMin,
-          ratingMax: search.ratingMax,
           yearMin: search.yearMin,
           yearMax: search.yearMax,
           contentRating: search.contentRating,
