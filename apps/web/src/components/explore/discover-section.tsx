@@ -42,7 +42,7 @@ const RATING_PRESETS = [
 
 const LANGUAGE_OPTIONS = [
   { code: "en", name: "English" },
-  { code: "se", name: "Swedish" },
+  { code: "sv", name: "Swedish" },
 ] as const;
 
 interface DiscoverSectionProps {
@@ -108,7 +108,7 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
 
   const languageNames: Record<string, string> = {
     en: t`English`,
-    se: t`Swedish`,
+    sv: t`Swedish`,
   };
 
   function handleDecadeChange(value: string | null) {
