@@ -22,7 +22,11 @@ export function upsertTitleStatus(
     .values({ userId, titleId, status, addedAt: now, updatedAt: now })
     .onConflictDoUpdate({
       target: [userTitleStatus.userId, userTitleStatus.titleId],
-      set: { status, updatedAt: now },
+      set: {
+        status,
+        updatedAt: now,
+        ...(addedAt ? { addedAt } : {}),
+      },
     })
     .run();
 }

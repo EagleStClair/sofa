@@ -56,9 +56,9 @@ export function logMovieWatch(
   const existing = getTitleStatus(userId, titleId);
 
   if (!existing) {
-    setTitleStatus(userId, titleId, "completed", source);
+    setTitleStatus(userId, titleId, "completed", source, now);
   } else if (existing.status !== "completed") {
-    setTitleStatus(userId, titleId, "completed", source);
+    setTitleStatus(userId, titleId, "completed", source, now);
   }
 }
 
