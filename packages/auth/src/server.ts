@@ -12,8 +12,9 @@ import { isOidcAutoRegisterEnabled, isOidcConfigured, isPasswordLoginDisabled } 
 
 const authLog = createLogger("auth");
 
+const httpsVariant = process.env.BETTER_AUTH_URL?.replace(/^http:/, "https:");
 export const auth = betterAuth({
-  trustedOrigins: ["sofa://"],
+  trustedOrigins: ["sofa://", ...(httpsVariant ? [httpsVariant] : [])],
   logger: {
     // Suppress unset secret/low entropy warnings during build
     disabled: process.env.NEXT_PHASE === "phase-production-build",
