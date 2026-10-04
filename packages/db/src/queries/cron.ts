@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, lt, or } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, lt, or } from "drizzle-orm";
 
 import { db } from "../client";
 import {
@@ -46,7 +46,12 @@ export function getStaleTitles(titleIds: string[], staleDate: Date) {
   return db
     .select({ id: titles.id })
     .from(titles)
-    .where(and(inArray(titles.id, titleIds), lt(titles.lastFetchedAt, staleDate)))
+    .where(
+      and(
+        inArray(titles.id, titleIds),
+        or(isNull(titles.lastFetchedAt), lt(titles.lastFetchedAt, staleDate)),
+      ),
+    )
     .all();
 }
 
