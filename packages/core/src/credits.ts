@@ -1,11 +1,11 @@
 import type { CastMember } from "@sofa/api/schemas";
 import {
   batchUpsertPersonsTransaction,
-  batchUpsertTitleCast,
   getCastForTitleJoined,
   getExistingPersonsByTmdbIds,
   getFallbackPersonsByTmdbIds,
   getPersonsForTitleCast,
+  replaceTitleCastTransaction,
 } from "@sofa/db/queries/credits";
 import { markEnrichmentChecked } from "@sofa/db/queries/metadata";
 import { getTitleById } from "@sofa/db/queries/title";
@@ -165,7 +165,8 @@ export async function refreshCredits(titleId: string) {
         });
         crewOrder++;
       }
-      batchUpsertTitleCast(allCastRows);
+      // Skip empty payloads so a blank TMDB response doesn't wipe existing credits
+      if (allCastRows.length > 0) replaceTitleCastTransaction(titleId, allCastRows);
     } else {
       const credits = await getTvAggregateCredits(title.tmdbId);
       const tvCast = credits.cast ?? [];
@@ -245,7 +246,8 @@ export async function refreshCredits(titleId: string) {
         });
         crewOrder++;
       }
-      batchUpsertTitleCast(allCastRows);
+      // Skip empty payloads so a blank TMDB response doesn't wipe existing credits
+      if (allCastRows.length > 0) replaceTitleCastTransaction(titleId, allCastRows);
     }
 
     markEnrichmentChecked(titleId, "credits");
