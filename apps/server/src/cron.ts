@@ -8,7 +8,8 @@ import {
   failCronRun,
   getLibraryTitleIds,
   getReturningTvShows,
-  getStaleLibraryTitles,
+  getLibraryTitlesDueForRefresh,
+  getStoredSeasonNumbers,
   getStaleNonLibraryTitlesForRefresh,
   getThumbhashBackfillTitleIds,
   getTitleByIdForCron,
@@ -27,6 +28,7 @@ import {
 import {
   refreshTitle,
   refreshTvChildren,
+  seasonsToRefresh,
   syncTvChildArt,
 } from "@sofa/core/metadata";
 import { getSetting } from "@sofa/core/settings";
@@ -98,14 +100,13 @@ export async function triggerJob(name: string): Promise<boolean> {
 async function nightlyRefreshLibrary() {
   const libraryIds = getLibraryTitleIds();
   log.debug(`Checking ${libraryIds.length} library titles for staleness`);
-  const libraryStale = new Date(Date.now() - 14 * DAY);
-  const nonLibraryStale = new Date(Date.now() - 90 * DAY);
+  const nonLibraryStale = new Date(Date.now() - 30 * DAY);
 
-  // Library titles: 7 days
-  const staleLibrary = getStaleLibraryTitles(libraryIds, libraryStale);
+  // Library titles: 7 days, or 60 days for settled (ended/canceled/old) titles
+  const dueLibraryIds = getLibraryTitlesDueForRefresh(libraryIds);
 
   await runIsolated(
-    staleLibrary.map((t) => t.id),
+    dueLibraryIds,
     async (id) => {
       await refreshTitle(id);
       await Bun.sleep(RATE_LIMIT_MS);
@@ -149,7 +150,8 @@ async function refreshAvailabilityJob() {
 async function refreshTvChildrenJob() {
   const stale = new Date(Date.now() - 14 * DAY);
 
-  const tvShows = getReturningTvShows();
+  const libraryIds = new Set(getLibraryTitleIds());
+  const tvShows = getReturningTvShows().filter((s) => libraryIds.has(s.id));
 
   log.debug(`Checking ${tvShows.length} returning TV shows for stale episodes`);
 
@@ -160,7 +162,12 @@ async function refreshTvChildrenJob() {
     tvShows.filter((s) => titlesWithStaleSeasons.has(s.id)),
     async (show) => {
       const details = await getTvDetails(show.tmdbId);
-      await refreshTvChildren(show.id, show.tmdbId, details.number_of_seasons);
+      const onlySeasons = seasonsToRefresh(
+        details.status ?? null,
+        details.number_of_seasons,
+        getStoredSeasonNumbers(show.id),
+      );
+      await refreshTvChildren(show.id, show.tmdbId, details.number_of_seasons, { onlySeasons });
       await syncTvChildArt(show.id, { warmCache: true });
       await Bun.sleep(RATE_LIMIT_MS);
     },
@@ -173,18 +180,20 @@ async function cacheImagesJob() {
   log.debug(`Caching images for ${titleIds.length} titles needing art backfill`);
 
   for (const titleId of titleIds) {
+    let downloads = 0;
     try {
       const title = getTitleByIdForCron(titleId);
       if (!title) continue;
 
       // Phase 1: warm the image cache so thumbhash generation can read from disk
       if (imageCacheEnabled()) {
-        await Promise.all([
+        const counts = await Promise.all([
           cacheImagesForTitle(titleId),
           cacheEpisodeStills(titleId),
           cacheProviderLogos(titleId),
           cacheProfilePhotos(titleId),
         ]);
+        downloads = counts.reduce((a, b) => a + b, 0);
       }
 
       // Phase 2: generate thumbhashes (reads from warm cache, no duplicate downloads)
@@ -207,7 +216,7 @@ async function cacheImagesJob() {
     } catch (err) {
       log.warn(`Failed to cache images for title ${titleId}:`, err);
     }
-    await Bun.sleep(RATE_LIMIT_MS);
+    if (downloads > 0) await Bun.sleep(RATE_LIMIT_MS);
   }
 }
 
