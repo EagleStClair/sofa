@@ -63,6 +63,9 @@ function getClient() {
     globalForDb._client.run("PRAGMA cache_size = -64000");
     globalForDb._client.run("PRAGMA temp_store = MEMORY");
     globalForDb._client.run("PRAGMA mmap_size = 268435456");
+    // Gather planner statistics now instead of waiting for the weekly optimize job
+    // (SQLite's recommendation for long-lived connections).
+    globalForDb._client.run("PRAGMA optimize=0x10002");
   }
   return globalForDb._client;
 }
