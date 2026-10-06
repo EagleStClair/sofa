@@ -15,6 +15,7 @@ import { createLogger } from "@sofa/logger";
 
 import { apiBodyLimit, UPLOAD_BODY_LIMIT } from "./body-limits";
 import { getJobSchedules, startJobs, stopJobs } from "./cron";
+import { imageSecurityHeaders } from "./image-headers";
 import { handler as rpcHandler } from "./orpc/handler";
 import { openApiHandler } from "./orpc/openapi-handler";
 import authRoutes from "./routes/auth";
@@ -65,6 +66,10 @@ app.use(
     maxAge: 86400,
   }),
 );
+
+// Image responses get a sandboxing CSP so uploaded or cached files cannot run script.
+app.use("/images/*", imageSecurityHeaders);
+app.use("/api/avatars/*", imageSecurityHeaders);
 
 app.use("*", async (c, next) => {
   if (isDatabaseAccessBlocked() && c.req.path !== "/api/health") {
