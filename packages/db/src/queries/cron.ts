@@ -138,3 +138,21 @@ export function deleteOldCronRuns(beforeDate: Date): number {
     .returning({ id: cronRuns.id })
     .all().length;
 }
+
+type CheckedAtColumn = "availabilityCheckedAt" | "creditsCheckedAt";
+
+/** Ids (from `titleIds`) whose `column` is null or older than `staleDate`. */
+export function getTitleIdsCheckedBefore(
+  titleIds: string[],
+  column: CheckedAtColumn,
+  staleDate: Date,
+): string[] {
+  if (titleIds.length === 0) return [];
+  const col = titles[column];
+  return db
+    .select({ id: titles.id })
+    .from(titles)
+    .where(and(inArray(titles.id, titleIds), or(isNull(col), lt(col, staleDate))))
+    .all()
+    .map((r) => r.id);
+}

@@ -5,6 +5,7 @@ import {
   getStaleTitles,
   getStaleNonLibraryTitles,
   getTitleByIdForCron,
+  getTitleIdsCheckedBefore,
   getTitleIdsWithStaleSeasons,
   getTitlesWithStaleOffers,
   getTitlesWithStaleOffersFetchedBefore,
@@ -81,5 +82,6 @@ export {
   getCastEntryForTitle,
   getReturningTvShows,
   getTitleByIdForCron,
+  getTitleIdsCheckedBefore,
   getTitleIdsWithStaleSeasons,
 };

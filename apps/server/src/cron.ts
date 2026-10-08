@@ -6,14 +6,13 @@ import { refreshCredits, syncCastProfileThumbHashes } from "@sofa/core/credits";
 import {
   completeCronRun,
   failCronRun,
-  getCastEntryForTitle,
   getLibraryTitleIds,
   getReturningTvShows,
-  getStaleAvailabilityTitles,
   getStaleLibraryTitles,
   getStaleNonLibraryTitlesForRefresh,
   getThumbhashBackfillTitleIds,
   getTitleByIdForCron,
+  getTitleIdsCheckedBefore,
   getTitleIdsWithStaleSeasons,
   runIsolated,
   startCronRun,
@@ -135,10 +134,10 @@ async function refreshAvailabilityJob() {
   log.debug(`Checking availability for ${libraryIds.length} library titles`);
   const stale = new Date(Date.now() - DAY);
 
-  const { withOffers, withStaleOffers } = getStaleAvailabilityTitles(libraryIds, stale);
+  const staleIds = getTitleIdsCheckedBefore(libraryIds, "availabilityCheckedAt", stale);
 
   await runIsolated(
-    libraryIds.filter((id) => withStaleOffers.has(id) || !withOffers.has(id)),
+    staleIds,
     async (id) => {
       await refreshAvailability(id);
       await Bun.sleep(RATE_LIMIT_MS);
@@ -217,15 +216,9 @@ async function refreshCreditsJob() {
   log.debug(`Checking credits for ${libraryIds.length} library titles`);
   const stale = new Date(Date.now() - 90 * DAY);
 
-  for (const titleId of libraryIds) {
-    const castEntry = getCastEntryForTitle(titleId);
-
-    const needsRefresh = !castEntry || !castEntry.lastFetchedAt || castEntry.lastFetchedAt < stale;
-
-    if (needsRefresh) {
-      await refreshCredits(titleId);
-      await Bun.sleep(RATE_LIMIT_MS);
-    }
+  for (const titleId of getTitleIdsCheckedBefore(libraryIds, "creditsCheckedAt", stale)) {
+    await refreshCredits(titleId);
+    await Bun.sleep(RATE_LIMIT_MS);
   }
 }
 

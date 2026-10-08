@@ -7,6 +7,7 @@ import {
   getFallbackPersonsByTmdbIds,
   getPersonsForTitleCast,
 } from "@sofa/db/queries/credits";
+import { markEnrichmentChecked } from "@sofa/db/queries/metadata";
 import { getTitleById } from "@sofa/db/queries/title";
 import type { titleCast } from "@sofa/db/schema";
 import { createLogger } from "@sofa/logger";
@@ -247,6 +248,7 @@ export async function refreshCredits(titleId: string) {
       batchUpsertTitleCast(allCastRows);
     }
 
+    markEnrichmentChecked(titleId, "credits");
     log.debug(`Credits refreshed for "${title.title}"`);
 
     (async () => {

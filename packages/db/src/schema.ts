@@ -116,6 +116,10 @@ export const titles = sqliteTable(
     runtimeMinutes: int("runtimeMinutes"),
     colorPalette: text("colorPalette"),
     trailerVideoKey: text("trailerVideoKey"),
+    // When each enrichment was last fetched from TMDB, even if TMDB returned nothing.
+    creditsCheckedAt: int("creditsCheckedAt", { mode: "timestamp" }),
+    availabilityCheckedAt: int("availabilityCheckedAt", { mode: "timestamp" }),
+    trailerCheckedAt: int("trailerCheckedAt", { mode: "timestamp" }),
     lastFetchedAt: int("lastFetchedAt", { mode: "timestamp" }),
   },
   (table) => [

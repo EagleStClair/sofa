@@ -20,6 +20,7 @@ import {
   getTitlesNeedingPosterHash,
   hasSeasonForTitle,
   insertTitleReturning,
+  markEnrichmentChecked,
   nullifyEpisodeThumbHash,
   nullifySeasonThumbHash,
   updateTitleFields,
@@ -61,6 +62,13 @@ import {
 import { WATCH_REGION } from "@sofa/config";
 
 const log = createLogger("metadata");
+
+/** After an empty TMDB answer, wait this long before asking again. */
+const EMPTY_ENRICHMENT_RECHECK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function checkedRecently(at: Date | null | undefined): boolean {
+  return !!at && Date.now() - at.getTime() < EMPTY_ENRICHMENT_RECHECK_MS;
+}
 
 const THUMBHASH_CONCURRENCY = 4;
 
@@ -497,13 +505,13 @@ async function ensureEnriched(
 ): Promise<boolean> {
   const tasks: Promise<unknown>[] = [];
 
-  if (!existing.hasCast) {
+  if (!existing.hasCast && !checkedRecently(title.creditsCheckedAt)) {
     tasks.push(
       refreshCredits(titleId).catch((err) => log.debug("Credits enrichment failed:", err)),
     );
   }
 
-  if (!existing.hasAvailability) {
+  if (!existing.hasAvailability && !checkedRecently(title.availabilityCheckedAt)) {
     tasks.push(
       refreshAvailability(titleId).catch((err) =>
         log.debug("Availability enrichment failed:", err),
@@ -528,7 +536,7 @@ async function ensureEnriched(
     );
   }
 
-  if (!title.trailerVideoKey) {
+  if (!title.trailerVideoKey && !checkedRecently(title.trailerCheckedAt)) {
     tasks.push(
       refreshTrailer(titleId).catch((err) => log.debug("Trailer enrichment failed:", err)),
     );
@@ -747,6 +755,7 @@ export async function refreshTrailer(titleId: string) {
     const response = await getVideos(title.tmdbId, title.type);
     const key = pickBestTrailer(response.results ?? []);
     updateTrailerKey(titleId, key);
+    markEnrichmentChecked(titleId, "trailer");
     log.debug(`Trailer for "${title.title}": ${key ? `YouTube ${key}` : "none found"}`);
   } catch (err) {
     log.debug(`Failed to fetch trailer for title ${titleId}:`, err);
