@@ -20,6 +20,7 @@ import {
   getTitlesNeedingPosterHash,
   hasSeasonForTitle,
   insertTitleReturning,
+  markEnrichmentChecked,
   nullifyEpisodeThumbHash,
   nullifySeasonThumbHash,
   updateTitleFields,
@@ -42,6 +43,7 @@ import { tmdbImageUrl } from "@sofa/tmdb/image";
 
 import { refreshAvailability } from "./availability";
 import { extractAndStoreColors, parseColorPalette } from "./colors";
+import { mapWithConcurrency } from "./concurrency";
 import { getCastForTitle, refreshCredits } from "./credits";
 import {
   cacheEpisodeStills,
@@ -61,26 +63,14 @@ import { WATCH_REGION } from "@sofa/config";
 
 const log = createLogger("metadata");
 
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  fn: (item: T) => Promise<R>,
-  concurrency: number,
-): Promise<PromiseSettledResult<R>[]> {
-  const results: PromiseSettledResult<R>[] = Array.from({ length: items.length });
-  let i = 0;
-  async function worker() {
-    while (i < items.length) {
-      const idx = i++;
-      try {
-        results[idx] = { status: "fulfilled", value: await fn(items[idx]) };
-      } catch (reason) {
-        results[idx] = { status: "rejected", reason };
-      }
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
-  return results;
+/** After an empty TMDB answer, wait this long before asking again. */
+const EMPTY_ENRICHMENT_RECHECK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function checkedRecently(at: Date | null | undefined): boolean {
+  return !!at && Date.now() - at.getTime() < EMPTY_ENRICHMENT_RECHECK_MS;
 }
+
+const THUMBHASH_CONCURRENCY = 4;
 
 export function updateTitleWithArtInvalidation(
   title: Pick<
@@ -132,6 +122,26 @@ export function extractMovieContentRating(movie: TmdbMovieDetails): string | nul
 export function extractTvContentRating(show: TmdbTvDetails): string | null {
   const region = show.content_ratings?.results?.find((r) => r.iso_3166_1 === WATCH_REGION);
   return region?.rating || null;
+}
+
+/** Title columns derived from TMDB TV details (everything except lastFetchedAt). */
+function tvTitleFields(show: TmdbTvDetails) {
+  return {
+    title: show.name,
+    originalTitle: show.original_name,
+    overview: show.overview,
+    firstAirDate: show.first_air_date || null,
+    posterPath: show.poster_path,
+    backdropPath: show.backdrop_path,
+    popularity: show.popularity,
+    voteAverage: show.vote_average,
+    voteCount: show.vote_count,
+    status: show.status,
+    contentRating: extractTvContentRating(show),
+    tvdbId: show.external_ids?.tvdb_id ?? null,
+    imdbId: show.external_ids?.imdb_id ?? null,
+    originalLanguage: show.original_language ?? null,
+  };
 }
 
 /** Fire-and-forget enrichment tasks (availability, art, credits, trailer) */
@@ -203,14 +213,7 @@ async function _getOrFetchTitleByTmdbId(tmdbId: number, type: "movie" | "tv") {
       // TV shell — fetch details + children
       const show = await getTvDetails(tmdbId);
       updateTitleWithArtInvalidation(existing, {
-        overview: show.overview,
-        posterPath: show.poster_path,
-        backdropPath: show.backdrop_path,
-        status: show.status,
-        contentRating: extractTvContentRating(show),
-        tvdbId: show.external_ids?.tvdb_id ?? null,
-        imdbId: show.external_ids?.imdb_id ?? null,
-        originalLanguage: show.original_language ?? null,
+        ...tvTitleFields(show),
         lastFetchedAt: new Date(),
       });
       upsertGenresTransaction(existing.id, show.genres ?? []);
@@ -321,24 +324,16 @@ export async function refreshTitle(titleId: string) {
   } else {
     const show = await getTvDetails(title.tmdbId);
     updateTitleWithArtInvalidation(title, {
-      title: show.name,
-      originalTitle: show.original_name,
-      overview: show.overview,
-      firstAirDate: show.first_air_date || null,
-      posterPath: show.poster_path,
-      backdropPath: show.backdrop_path,
-      popularity: show.popularity,
-      voteAverage: show.vote_average,
-      voteCount: show.vote_count,
-      status: show.status,
-      contentRating: extractTvContentRating(show),
-      tvdbId: show.external_ids?.tvdb_id ?? null,
-      imdbId: show.external_ids?.imdb_id ?? null,
-      originalLanguage: show.original_language ?? null,
+      ...tvTitleFields(show),
       lastFetchedAt: now,
     });
     upsertGenresTransaction(titleId, show.genres ?? []);
-    await refreshTvChildren(titleId, title.tmdbId, show.number_of_seasons);
+    const onlySeasons = seasonsToRefresh(
+      show.status ?? null,
+      show.number_of_seasons,
+      getSeasonsForTitle(titleId).map((s) => s.seasonNumber),
+    );
+    await refreshTvChildren(titleId, title.tmdbId, show.number_of_seasons, { onlySeasons });
   }
 
   const updated = getTitleById(titleId);
@@ -355,9 +350,38 @@ export async function refreshTitle(titleId: string) {
   return updated;
 }
 
-export async function refreshTvChildren(titleId: string, tmdbId: number, numberOfSeasons: number) {
+const RETURNING_TV_STATUSES = new Set(["Returning Series", "In Production"]);
+
+/**
+ * Seasons worth re-fetching for a show we already have: for returning shows, the two latest
+ * plus any season never stored; otherwise every season.
+ */
+export function seasonsToRefresh(
+  status: string | null,
+  numberOfSeasons: number,
+  storedSeasonNumbers: number[],
+): number[] | undefined {
+  if (!status || !RETURNING_TV_STATUSES.has(status) || storedSeasonNumbers.length === 0) {
+    return undefined; // all seasons
+  }
+  const stored = new Set(storedSeasonNumbers);
+  const result: number[] = [];
+  for (let sn = 1; sn <= numberOfSeasons; sn++) {
+    if (sn >= numberOfSeasons - 1 || !stored.has(sn)) result.push(sn);
+  }
+  return result;
+}
+
+export async function refreshTvChildren(
+  titleId: string,
+  tmdbId: number,
+  numberOfSeasons: number,
+  options?: { onlySeasons?: number[] },
+) {
   // Fetch seasons with limited concurrency to stay within TMDB's 40 req/s limit
-  const seasonNumbers = Array.from({ length: numberOfSeasons }, (_, i) => i + 1);
+  const allSeasons = Array.from({ length: numberOfSeasons }, (_, i) => i + 1);
+  const only = options?.onlySeasons;
+  const seasonNumbers = only ? allSeasons.filter((sn) => only.includes(sn)) : allSeasons;
   const fetched = await mapWithConcurrency(
     seasonNumbers,
     (sn) => getTvSeasonDetails(tmdbId, sn),
@@ -471,13 +495,7 @@ export async function ensureTvHydrated(titleId: string): Promise<Season[]> {
     try {
       const show = await getTvDetails(tmdbId);
       updateTitleWithArtInvalidation(title, {
-        overview: show.overview,
-        posterPath: show.poster_path,
-        backdropPath: show.backdrop_path,
-        status: show.status,
-        contentRating: extractTvContentRating(show),
-        imdbId: show.external_ids?.imdb_id ?? null,
-        originalLanguage: show.original_language ?? null,
+        ...tvTitleFields(show),
         lastFetchedAt: new Date(),
       });
       upsertGenresTransaction(titleId, show.genres ?? []);
@@ -515,13 +533,13 @@ async function ensureEnriched(
 ): Promise<boolean> {
   const tasks: Promise<unknown>[] = [];
 
-  if (!existing.hasCast) {
+  if (!existing.hasCast && !checkedRecently(title.creditsCheckedAt)) {
     tasks.push(
       refreshCredits(titleId).catch((err) => log.debug("Credits enrichment failed:", err)),
     );
   }
 
-  if (!existing.hasAvailability) {
+  if (!existing.hasAvailability && !checkedRecently(title.availabilityCheckedAt)) {
     tasks.push(
       refreshAvailability(titleId).catch((err) =>
         log.debug("Availability enrichment failed:", err),
@@ -546,7 +564,7 @@ async function ensureEnriched(
     );
   }
 
-  if (!title.trailerVideoKey) {
+  if (!title.trailerVideoKey && !checkedRecently(title.trailerCheckedAt)) {
     tasks.push(
       refreshTrailer(titleId).catch((err) => log.debug("Trailer enrichment failed:", err)),
     );
@@ -668,6 +686,7 @@ export async function getOrFetchTitle(
     titleSeasons = title.lastFetchedAt ? fetchSeasonsFromDb(id) : [];
     if (titleSeasons.length === 0) {
       titleSeasons = await ensureTvHydrated(id);
+      title = getTitleById(id) ?? title;
     }
   }
 
@@ -765,6 +784,7 @@ export async function refreshTrailer(titleId: string) {
     const response = await getVideos(title.tmdbId, title.type);
     const key = pickBestTrailer(response.results ?? []);
     updateTrailerKey(titleId, key);
+    markEnrichmentChecked(titleId, "trailer");
     log.debug(`Trailer for "${title.title}": ${key ? `YouTube ${key}` : "none found"}`);
   } catch (err) {
     log.debug(`Failed to fetch trailer for title ${titleId}:`, err);
@@ -774,11 +794,12 @@ export async function refreshTrailer(titleId: string) {
 async function generateMissingTvChildThumbHashes(titleId: string) {
   const titleSeasons = getSeasonsForTitle(titleId);
 
-  const hashTasks: Promise<unknown>[] = [];
+  const work: (() => Promise<unknown>)[] = [];
 
   for (const s of titleSeasons) {
     if (s.posterPath && !s.posterThumbHash) {
-      hashTasks.push(generateSeasonThumbHash(s.id, s.posterPath));
+      const posterPath = s.posterPath;
+      work.push(() => generateSeasonThumbHash(s.id, posterPath));
     }
   }
 
@@ -786,11 +807,11 @@ async function generateMissingTvChildThumbHashes(titleId: string) {
   if (seasonIds.length > 0) {
     const epsNeedingHash = getEpisodesNeedingStillHash(seasonIds);
     for (const ep of epsNeedingHash) {
-      hashTasks.push(generateEpisodeThumbHash(ep.id, ep.stillPath));
+      work.push(() => generateEpisodeThumbHash(ep.id, ep.stillPath));
     }
   }
 
-  await Promise.all(hashTasks);
+  await mapWithConcurrency(work, (run) => run(), THUMBHASH_CONCURRENCY);
 }
 
 export async function syncTvChildArt(titleId: string, options?: { warmCache?: boolean }) {
@@ -803,7 +824,8 @@ export async function syncTvChildArt(titleId: string, options?: { warmCache?: bo
 
 /**
  * Warm the image cache for a title, then derive poster colors and thumbhashes.
- * Sequencing avoids duplicate TMDB downloads on cold caches.
+ * Sequencing avoids duplicate TMDB downloads on cold caches. For TV, episode stills
+ * and season/episode thumbhashes continue in the background after this resolves.
  */
 async function syncTitleArt(
   titleId: string,
@@ -813,9 +835,6 @@ async function syncTitleArt(
 ) {
   if (imageCacheEnabled()) {
     await cacheImagesForTitle(titleId);
-    if (type === "tv") {
-      await cacheEpisodeStills(titleId);
-    }
   }
 
   const posterBuffer = posterPath ? await loadImageBuffer(posterPath, "posters") : undefined;
@@ -828,7 +847,9 @@ async function syncTitleArt(
   ]);
 
   if (type === "tv") {
-    await syncTvChildArt(titleId, { warmCache: false });
+    // Episode stills and season/episode thumbhashes can number in the hundreds; callers
+    // (often a title-page request) shouldn't wait for them.
+    syncTvChildArt(titleId).catch((err) => log.debug("TV child art sync failed:", err));
   }
 }
 
