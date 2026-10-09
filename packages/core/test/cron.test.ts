@@ -138,10 +138,10 @@ describe("libraryRefreshIntervalMs", () => {
     );
   });
 
-  test("returning TV shows refresh every 7 days", () => {
+  test("returning TV shows refresh every 14 days", () => {
     expect(
       libraryRefreshIntervalMs({ type: "tv", status: "Returning Series", releaseDate: null }, now),
-    ).toBe(7 * DAY);
+    ).toBe(14 * DAY);
   });
 
   test("movies released over a year ago refresh every 60 days", () => {
@@ -153,41 +153,41 @@ describe("libraryRefreshIntervalMs", () => {
     ).toBe(60 * DAY);
   });
 
-  test("recent movies refresh every 7 days", () => {
+  test("recent movies refresh every 14 days", () => {
     expect(
       libraryRefreshIntervalMs(
         { type: "movie", status: "Released", releaseDate: "2026-05-02" },
         now,
       ),
-    ).toBe(7 * DAY);
+    ).toBe(14 * DAY);
   });
 
-  test("movies without a release date refresh every 7 days", () => {
+  test("movies without a release date refresh every 14 days", () => {
     expect(
       libraryRefreshIntervalMs({ type: "movie", status: "Released", releaseDate: null }, now),
-    ).toBe(7 * DAY);
+    ).toBe(14 * DAY);
   });
 });
 
 describe("getLibraryTitlesDueForRefresh", () => {
   const now = new Date("2026-06-01T00:00:00Z");
-  const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+  const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
 
-  test("skips an ended show fetched 10 days ago", () => {
+  test("skips an ended show fetched 15 days ago", () => {
     insertTitle({ id: "t-ended", tmdbId: 1, type: "tv" });
     testDb
       .update(titles)
-      .set({ status: "Ended", lastFetchedAt: tenDaysAgo })
+      .set({ status: "Ended", lastFetchedAt: fifteenDaysAgo })
       .where(eq(titles.id, "t-ended"))
       .run();
     expect(getLibraryTitlesDueForRefresh(["t-ended"], now)).toEqual([]);
   });
 
-  test("includes a returning show fetched 10 days ago", () => {
+  test("includes a returning show fetched 15 days ago", () => {
     insertTitle({ id: "t-returning", tmdbId: 2, type: "tv" });
     testDb
       .update(titles)
-      .set({ status: "Returning Series", lastFetchedAt: tenDaysAgo })
+      .set({ status: "Returning Series", lastFetchedAt: fifteenDaysAgo })
       .where(eq(titles.id, "t-returning"))
       .run();
     expect(getLibraryTitlesDueForRefresh(["t-returning"], now)).toEqual(["t-returning"]);

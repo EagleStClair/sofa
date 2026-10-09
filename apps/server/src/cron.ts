@@ -100,9 +100,9 @@ export async function triggerJob(name: string): Promise<boolean> {
 async function nightlyRefreshLibrary() {
   const libraryIds = getLibraryTitleIds();
   log.debug(`Checking ${libraryIds.length} library titles for staleness`);
-  const nonLibraryStale = new Date(Date.now() - 30 * DAY);
+  const nonLibraryStale = new Date(Date.now() - 90 * DAY);
 
-  // Library titles: 7 days, or 60 days for settled (ended/canceled/old) titles
+  // Library titles: 14 days, or 60 days for settled (ended/canceled/old) titles
   const dueLibraryIds = getLibraryTitlesDueForRefresh(libraryIds);
 
   await runIsolated(

@@ -85,7 +85,7 @@ export function libraryRefreshIntervalMs(
     const released = Date.parse(`${title.releaseDate}T00:00:00Z`);
     if (Number.isFinite(released) && now.getTime() - released > 365 * DAY_MS) return 60 * DAY_MS;
   }
-  return 7 * DAY_MS;
+  return 14 * DAY_MS;
 }
 
 /** Library title ids whose metadata is due for a refresh. */
