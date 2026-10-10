@@ -3,12 +3,11 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { CommandPalette } from "@/components/command-palette";
 import { MobileTabBar, NavBar } from "@/components/nav-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth/client";
-import { client } from "@/lib/orpc/client";
+import { getSessionCached } from "@/lib/auth/client";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
-    const { data: session } = await authClient.getSession();
+    const { data: session } = await getSessionCached();
     if (!session) throw redirect({ to: "/login" });
 
     return { session };

@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <!-- Paint the app background immediately so launch never shows a blank white screen -->
+    <style>
+      html,
+      body {
+        background: #090706;
+      }
+    </style>
   </head>
   <body style="touch-action: manipulation">
     <div id="root"></div>
