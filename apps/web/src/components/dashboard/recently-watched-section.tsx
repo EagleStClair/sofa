@@ -20,7 +20,11 @@ export function RecentlyWatchedSection() {
   if (items.length === 0) return null;
 
   return (
-    <FeedSection title={t`Recently Watched`} icon={<IconHistory className="text-primary size-5" />}>
+    <FeedSection
+      title={t`Recently Watched`}
+      icon={<IconHistory className="text-primary size-5" />}
+      seeAllLink="/history"
+    >
       <div className="space-y-2">
         {items.map((item, i) => (
           <RecentlyWatchedRow key={`${item.titleId}-${item.episodeId}-${i}`} item={item} />
