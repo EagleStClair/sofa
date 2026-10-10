@@ -497,6 +497,17 @@ export const LibraryStatsOutput = z
   })
   .meta({ description: "Aggregate library statistics" });
 
+export const WatchInsightsOutput = z
+  .object({
+    watchMinutes: z.number().describe("Total minutes watched across movies and episodes"),
+    topGenre: z.string().nullable().describe("Genre of the most distinct titles watched"),
+    busiestWeekday: z
+      .number()
+      .nullable()
+      .describe("Day of week with the most watches (0 = Sunday … 6 = Saturday)"),
+  })
+  .meta({ description: "Lightweight, all-time watch insights" });
+
 export const ContinueWatchingOutput = z
   .object({
     items: z.array(
@@ -1089,6 +1100,7 @@ export type BackupInfo = z.infer<typeof BackupSchema>;
 export type CastMember = z.infer<typeof CastMemberSchema>;
 export type ColorPalette = z.infer<typeof ColorPaletteSchema>;
 export type CronJobName = z.infer<typeof cronJobName>;
+export type WatchInsights = z.infer<typeof WatchInsightsOutput>;
 export type LibraryStats = z.infer<typeof LibraryStatsOutput>;
 export type Episode = z.infer<typeof EpisodeSchema>;
 export type HistoryBucket = z.infer<typeof HistoryBucketSchema>;

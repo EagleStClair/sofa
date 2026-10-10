@@ -1,4 +1,9 @@
-import { getContinueWatchingFeed, getUserStats, getUpcomingFeed } from "@sofa/core/discovery";
+import {
+  getContinueWatchingFeed,
+  getUserStats,
+  getUpcomingFeed,
+  getWatchInsights,
+} from "@sofa/core/discovery";
 import { getFilteredLibraryFeed, getLibraryGenresList, getRecentlyWatchedFeed } from "@sofa/core/library";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
 
@@ -50,6 +55,10 @@ export const stats = os.library.stats.use(authed).handler(({ context }) => {
   const userStats = getUserStats(context.user.id);
   return { size: userStats.librarySize, completed: userStats.completed };
 });
+
+export const insights = os.library.insights
+  .use(authed)
+  .handler(({ context }) => getWatchInsights(context.user.id));
 
 export const continueWatching = os.library.continueWatching.use(authed).handler(({ context }) => {
   const feed = getContinueWatchingFeed(context.user.id);

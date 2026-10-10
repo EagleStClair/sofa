@@ -4,9 +4,12 @@ import {
   getEpisodeWatchCountSince,
   getEpisodeWatchesByEpisodeIds,
   getEpisodeWatchHistoryBuckets,
+  getBusiestWeekday,
   getInProgressTitleIds,
   getMovieWatchCountSince,
   getMovieWatchHistoryBuckets,
+  getTopWatchedGenre,
+  getTotalWatchMinutes,
   getNewAvailableFeed,
   getSeasonsByTitleIds,
   getTitleByIdOrNull,
@@ -124,6 +127,20 @@ export function getWatchHistory(
 
   const countMap = new Map(rows.map((r) => [r.bucket, r.count]));
   return buckets.map((b) => ({ bucket: b, count: countMap.get(b) ?? 0 }));
+}
+
+export interface WatchInsights {
+  watchMinutes: number;
+  topGenre: string | null;
+  busiestWeekday: number | null;
+}
+
+export function getWatchInsights(userId: string): WatchInsights {
+  return {
+    watchMinutes: getTotalWatchMinutes(userId),
+    topGenre: getTopWatchedGenre(userId),
+    busiestWeekday: getBusiestWeekday(userId),
+  };
 }
 
 export interface DashboardStats {
