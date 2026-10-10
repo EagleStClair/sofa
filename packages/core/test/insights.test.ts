@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { genres, titleGenres, titles, episodes } from "@sofa/db/schema";
+import { episodes, titles } from "@sofa/db/schema";
 import {
   clearAllTables,
   insertEpisodeWatch,
@@ -14,7 +14,19 @@ import {
 
 import { getWatchInsights } from "../src/discovery";
 
+const NOW = new Date("2026-03-31T12:00:00Z");
+
+beforeAll(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(NOW);
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 beforeEach(() => {
+  vi.setSystemTime(NOW);
   clearAllTables();
 });
 
@@ -22,36 +34,45 @@ function setRuntime(titleId: string, minutes: number) {
   testDb.update(titles).set({ runtimeMinutes: minutes }).where(eq(titles.id, titleId)).run();
 }
 
-function tagGenre(titleId: string, genreId: number, name: string) {
-  testDb.insert(genres).values({ id: genreId, name }).onConflictDoNothing().run();
-  testDb.insert(titleGenres).values({ titleId, genreId }).run();
-}
+const ZERO = { movieCount: 0, movieMinutes: 0, episodeCount: 0, episodeMinutes: 0 };
 
 describe("getWatchInsights", () => {
-  test("is empty for a user with no watches", () => {
+  test("is zero for a user with no watches", () => {
     insertUser();
-    expect(getWatchInsights("user-1")).toEqual({
-      watchMinutes: 0,
-      topGenre: null,
-      busiestWeekday: null,
-    });
+    expect(getWatchInsights("user-1")).toEqual({ last30Days: ZERO, allTime: ZERO });
   });
 
-  test("sums movie runtimes and episode runtimes, with the show runtime as fallback", () => {
+  test("splits movies and episodes, rewatches count again, episode runtime falls back to the show's", () => {
     insertUser();
     insertTitle({ id: "m1", tmdbId: 1 });
     setRuntime("m1", 100);
     const { episodeIds } = insertTvShow("tv-1", 99);
     setRuntime("tv-1", 40);
-    // First episode has its own runtime, the others fall back to the show's 40.
     testDb.update(episodes).set({ runtimeMinutes: 50 }).where(eq(episodes.id, episodeIds[0])).run();
 
     insertMovieWatch("user-1", "m1");
-    insertMovieWatch("user-1", "m1"); // rewatch counts again
+    insertMovieWatch("user-1", "m1");
     insertEpisodeWatch("user-1", episodeIds[0]);
     insertEpisodeWatch("user-1", episodeIds[1]);
 
-    expect(getWatchInsights("user-1").watchMinutes).toBe(100 + 100 + 50 + 40);
+    expect(getWatchInsights("user-1").allTime).toEqual({
+      movieCount: 2,
+      movieMinutes: 200,
+      episodeCount: 2,
+      episodeMinutes: 90,
+    });
+  });
+
+  test("last 30 days only includes recent watches", () => {
+    insertUser();
+    insertTitle({ id: "m1", tmdbId: 1 });
+    setRuntime("m1", 100);
+    insertMovieWatch("user-1", "m1", new Date("2026-03-20T12:00:00Z")); // inside
+    insertMovieWatch("user-1", "m1", new Date("2026-01-10T12:00:00Z")); // outside
+
+    const result = getWatchInsights("user-1");
+    expect(result.last30Days).toEqual({ ...ZERO, movieCount: 1, movieMinutes: 100 });
+    expect(result.allTime).toEqual({ ...ZERO, movieCount: 2, movieMinutes: 200 });
   });
 
   test("ignores other users' watches", () => {
@@ -60,33 +81,6 @@ describe("getWatchInsights", () => {
     insertTitle({ id: "m1", tmdbId: 1 });
     setRuntime("m1", 90);
     insertMovieWatch("user-2", "m1");
-    expect(getWatchInsights("user-1").watchMinutes).toBe(0);
-  });
-
-  test("top genre counts distinct titles, not episodes", () => {
-    insertUser();
-    insertTitle({ id: "m1", tmdbId: 1 });
-    insertTitle({ id: "m2", tmdbId: 2 });
-    tagGenre("m1", 1, "Drama");
-    tagGenre("m2", 1, "Drama");
-    const { episodeIds } = insertTvShow("tv-1", 99);
-    tagGenre("tv-1", 2, "Comedy");
-
-    insertMovieWatch("user-1", "m1");
-    insertMovieWatch("user-1", "m2");
-    // Three episode watches of one show must not outweigh two movies.
-    for (const id of episodeIds) insertEpisodeWatch("user-1", id);
-
-    expect(getWatchInsights("user-1").topGenre).toBe("Drama");
-  });
-
-  test("busiest weekday is the most frequent day of the week (0 = Sunday)", () => {
-    insertUser();
-    insertTitle({ id: "m1", tmdbId: 1 });
-    // 2026-03-01 is a Sunday, 2026-03-02 a Monday.
-    insertMovieWatch("user-1", "m1", new Date("2026-03-01T12:00:00Z"));
-    insertMovieWatch("user-1", "m1", new Date("2026-03-02T12:00:00Z"));
-    insertMovieWatch("user-1", "m1", new Date("2026-03-09T12:00:00Z"));
-    expect(getWatchInsights("user-1").busiestWeekday).toBe(1);
+    expect(getWatchInsights("user-1")).toEqual({ last30Days: ZERO, allTime: ZERO });
   });
 });
