@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { ContinueWatchingSectionSkeleton } from "@/components/dashboard/continue-watching-list";
 import { ContinueWatchingSection } from "@/components/dashboard/continue-watching-section";
+import { InsightsRow } from "@/components/dashboard/insights-row";
 import { RecentlyWatchedSection } from "@/components/dashboard/recently-watched-section";
 import { StatsSectionSkeleton } from "@/components/dashboard/stats-display";
 import { StatsSection } from "@/components/dashboard/stats-section";
@@ -14,6 +15,8 @@ import { orpc } from "@/lib/orpc/client";
 export const Route = createFileRoute("/_app/dashboard")({
   staleTime: 120_000,
   loader: async ({ context }) => {
+    // Not awaited: the insights row fills in on its own and must not delay first paint.
+    void context.queryClient.prefetchQuery(orpc.library.insights.queryOptions());
     await Promise.all([
       context.queryClient.ensureQueryData(
         orpc.tracking.stats.queryOptions({ input: { type: "movie", period: "this_month" } }),
@@ -54,6 +57,7 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       <StatsSection />
+      <InsightsRow />
       <ContinueWatchingSection />
       <UpcomingSection />
       <RecentlyWatchedSection />

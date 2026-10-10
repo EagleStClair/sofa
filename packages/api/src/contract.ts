@@ -22,6 +22,7 @@ import {
   LibraryListInput,
   LibraryListOutput,
   LibraryStatsOutput,
+  WatchInsightsOutput,
   MediaTypeParam,
   PageParam,
   PaginatedInput,
@@ -201,6 +202,17 @@ export const contract = {
         successDescription: "Library size and completed count",
       })
       .output(LibraryStatsOutput),
+    insights: oc
+      .route({
+        method: "GET",
+        path: "/library/insights",
+        tags: ["Library"],
+        summary: "Get watch insights",
+        description:
+          "Fetch all-time watch insights: total watch time, most-watched genre and busiest weekday.",
+        successDescription: "Watch time, top genre and busiest weekday",
+      })
+      .output(WatchInsightsOutput),
     continueWatching: oc
       .route({
         method: "GET",

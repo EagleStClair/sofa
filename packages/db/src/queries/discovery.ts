@@ -70,6 +70,67 @@ export function getEpisodeWatchHistoryBuckets(userId: string, startTs: number, f
     .all();
 }
 
+/** Minutes of everything the user has watched (rewatches count again). */
+export function getTotalWatchMinutes(userId: string): number {
+  const movies = db
+    .select({ minutes: sql<number>`coalesce(sum(${titles.runtimeMinutes}), 0)` })
+    .from(userMovieWatches)
+    .innerJoin(titles, eq(userMovieWatches.titleId, titles.id))
+    .where(eq(userMovieWatches.userId, userId))
+    .get();
+  // Episodes without their own runtime fall back to the show's typical runtime.
+  const eps = db
+    .select({
+      minutes: sql<number>`coalesce(sum(coalesce(${episodes.runtimeMinutes}, ${titles.runtimeMinutes}, 0)), 0)`,
+    })
+    .from(userEpisodeWatches)
+    .innerJoin(episodes, eq(userEpisodeWatches.episodeId, episodes.id))
+    .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+    .innerJoin(titles, eq(seasons.titleId, titles.id))
+    .where(eq(userEpisodeWatches.userId, userId))
+    .get();
+  return (movies?.minutes ?? 0) + (eps?.minutes ?? 0);
+}
+
+/** Genre shared by the most distinct titles the user has watched. */
+export function getTopWatchedGenre(userId: string): string | null {
+  const row = db.get<{ name: string }>(sql`
+    SELECT g.name AS name
+    FROM titleGenres tg
+    JOIN genres g ON g.id = tg.genreId
+    WHERE tg.titleId IN (
+      SELECT titleId FROM userMovieWatches WHERE userId = ${userId}
+      UNION
+      SELECT s.titleId
+      FROM userEpisodeWatches w
+      JOIN episodes e ON e.id = w.episodeId
+      JOIN seasons s ON s.id = e.seasonId
+      WHERE w.userId = ${userId}
+    )
+    GROUP BY g.id
+    ORDER BY count(*) DESC, g.name
+    LIMIT 1
+  `);
+  return row?.name ?? null;
+}
+
+/** Day of week (0 = Sunday … 6 = Saturday, server local time) with the most watches. */
+export function getBusiestWeekday(userId: string): number | null {
+  const row = db.get<{ day: string }>(sql`
+    SELECT day FROM (
+      SELECT strftime('%w', watchedAt, 'unixepoch', 'localtime') AS day
+      FROM userMovieWatches WHERE userId = ${userId}
+      UNION ALL
+      SELECT strftime('%w', watchedAt, 'unixepoch', 'localtime') AS day
+      FROM userEpisodeWatches WHERE userId = ${userId}
+    )
+    GROUP BY day
+    ORDER BY count(*) DESC, day
+    LIMIT 1
+  `);
+  return row ? Number(row.day) : null;
+}
+
 export function getUserStatusCounts(userId: string) {
   const [row] = db
     .select({

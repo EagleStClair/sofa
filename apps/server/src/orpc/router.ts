@@ -25,6 +25,7 @@ export const implementedRouter = {
     list: library.list,
     genres: library.genres,
     stats: library.stats,
+    insights: library.insights,
     continueWatching: library.continueWatching,
     upcoming: library.upcoming,
     recentlyWatched: library.recentlyWatched,
