@@ -4,12 +4,10 @@ import {
   getEpisodeWatchCountSince,
   getEpisodeWatchesByEpisodeIds,
   getEpisodeWatchHistoryBuckets,
-  getBusiestWeekday,
   getInProgressTitleIds,
   getMovieWatchCountSince,
   getMovieWatchHistoryBuckets,
-  getTopWatchedGenre,
-  getTotalWatchMinutes,
+  getWatchTotals,
   getNewAvailableFeed,
   getSeasonsByTitleIds,
   getTitleByIdOrNull,
@@ -19,6 +17,7 @@ import {
   getUpcomingMovies,
   getUserStatusCounts,
 } from "@sofa/db/queries/discovery";
+import type { WatchTotals } from "@sofa/db/queries/discovery";
 import { tmdbImageUrl } from "@sofa/tmdb/image";
 
 import type { DisplayStatus } from "./display-status";
@@ -130,16 +129,14 @@ export function getWatchHistory(
 }
 
 export interface WatchInsights {
-  watchMinutes: number;
-  topGenre: string | null;
-  busiestWeekday: number | null;
+  last30Days: WatchTotals;
+  allTime: WatchTotals;
 }
 
 export function getWatchInsights(userId: string): WatchInsights {
   return {
-    watchMinutes: getTotalWatchMinutes(userId),
-    topGenre: getTopWatchedGenre(userId),
-    busiestWeekday: getBusiestWeekday(userId),
+    last30Days: getWatchTotals(userId, periodStartTimestamp("this_month")),
+    allTime: getWatchTotals(userId, null),
   };
 }
 

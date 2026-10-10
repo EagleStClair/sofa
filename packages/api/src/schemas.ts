@@ -497,16 +497,19 @@ export const LibraryStatsOutput = z
   })
   .meta({ description: "Aggregate library statistics" });
 
+const WatchTotalsSchema = z.object({
+  movieCount: z.number().describe("Movies watched"),
+  movieMinutes: z.number().describe("Minutes of movies watched"),
+  episodeCount: z.number().describe("Episodes watched"),
+  episodeMinutes: z.number().describe("Minutes of episodes watched"),
+});
+
 export const WatchInsightsOutput = z
   .object({
-    watchMinutes: z.number().describe("Total minutes watched across movies and episodes"),
-    topGenre: z.string().nullable().describe("Genre of the most distinct titles watched"),
-    busiestWeekday: z
-      .number()
-      .nullable()
-      .describe("Day of week with the most watches (0 = Sunday … 6 = Saturday)"),
+    last30Days: WatchTotalsSchema,
+    allTime: WatchTotalsSchema,
   })
-  .meta({ description: "Lightweight, all-time watch insights" });
+  .meta({ description: "Watch counts and watch time for movies and episodes" });
 
 export const ContinueWatchingOutput = z
   .object({

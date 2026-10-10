@@ -207,10 +207,10 @@ export const contract = {
         method: "GET",
         path: "/library/insights",
         tags: ["Library"],
-        summary: "Get watch insights",
+        summary: "Get watch time",
         description:
-          "Fetch all-time watch insights: total watch time, most-watched genre and busiest weekday.",
-        successDescription: "Watch time, top genre and busiest weekday",
+          "Fetch watch counts and watch time for movies and episodes: last 30 days and all time.",
+        successDescription: "Counts and minutes watched for movies and episodes",
       })
       .output(WatchInsightsOutput),
     continueWatching: oc
