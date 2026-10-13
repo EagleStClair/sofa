@@ -732,6 +732,7 @@ export async function getOrFetchTitle(
     status: title.status,
     contentRating: title.contentRating,
     imdbId: title.imdbId,
+    imdbRating: title.imdbRating,
     tvdbId: title.tvdbId,
     originalLanguage: title.originalLanguage,
     runtimeMinutes: title.runtimeMinutes,

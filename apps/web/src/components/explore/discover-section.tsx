@@ -118,7 +118,7 @@ export function DiscoverSection({ search, onSearchChange }: DiscoverSectionProps
     }
     const preset = DECADE_PRESETS.find((d) => String(d.min) === value);
     if (preset) {
-      onSearchChange({ yearMin: preset.min, yearMax: preset.max });
+      onSearchChange({ yearMin: preset.min, yearMax: preset.max ?? undefined });
     }
   }
 

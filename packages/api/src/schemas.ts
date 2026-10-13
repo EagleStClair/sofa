@@ -371,6 +371,7 @@ export const ResolvedTitleSchema = z
     status: z.string().nullable().describe("Production status (e.g. Released, Returning Series)"),
     contentRating: z.string().nullable().describe("Content rating (e.g. PG-13, TV-MA)"),
     imdbId: z.string().nullable().describe("IMDb title ID (e.g. tt0137523)"),
+    imdbRating: z.number().nullable().describe("IMDb rating (0-10)"),
     tvdbId: z.number().nullable().describe("TVDB ID (TV shows only)"),
     originalLanguage: z.string().nullable().describe("Original language ISO 639-1 code (e.g. en)"),
     runtimeMinutes: z.number().nullable().describe("Runtime in minutes (movies only)"),
