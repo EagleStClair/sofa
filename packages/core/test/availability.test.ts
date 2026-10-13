@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import { WATCH_REGION } from "@sofa/config";
 import { titleAvailability, titles } from "@sofa/db/schema";
 import {
   clearAllTables,
@@ -26,10 +27,10 @@ beforeEach(() => {
 });
 
 describe("refreshAvailability", () => {
-  test("clears stale US offers when TMDB returns no US availability", async () => {
+  test("clears stale offers when TMDB returns no availability for the watch region", async () => {
     insertTitle({ id: "movie-1", tmdbId: 101, type: "movie", title: "Movie" });
     const platformId = insertPlatform({ id: "p-1", tmdbProviderId: 8 });
-    insertTitleAvailability("movie-1", platformId);
+    insertTitleAvailability("movie-1", platformId, { region: WATCH_REGION });
 
     await refreshAvailability("movie-1");
 
