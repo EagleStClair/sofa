@@ -122,18 +122,21 @@ export function useTitleActions() {
     [getUserInfo, setUserInfo, queryClient, userInfoKey, titleId, updateRating, t],
   );
 
-  const handleWatchMovie = useCallback(async () => {
-    await queryClient.cancelQueries({ queryKey: userInfoKey });
-    const prevStatus = getUserInfo().status;
-    setUserInfo((old) => ({ ...old, status: "completed" }));
-    try {
-      await watch({ scope: "movie", ids: [titleId] });
-      toast.success(t`Marked "${titleName}" as watched`);
-    } catch {
-      setUserInfo((old) => ({ ...old, status: prevStatus }));
-      toast.error(t`Failed to mark as watched`);
-    }
-  }, [getUserInfo, setUserInfo, queryClient, userInfoKey, titleId, titleName, watch, t]);
+  const handleWatchMovie = useCallback(
+    async (watchedAt?: Date) => {
+      await queryClient.cancelQueries({ queryKey: userInfoKey });
+      const prevStatus = getUserInfo().status;
+      setUserInfo((old) => ({ ...old, status: "completed" }));
+      try {
+        await watch({ scope: "movie", ids: [titleId], watchedAt: watchedAt?.toISOString() });
+        toast.success(t`Marked "${titleName}" as watched`);
+      } catch {
+        setUserInfo((old) => ({ ...old, status: prevStatus }));
+        toast.error(t`Failed to mark as watched`);
+      }
+    },
+    [getUserInfo, setUserInfo, queryClient, userInfoKey, titleId, titleName, watch, t],
+  );
 
   const handleUnwatchMovie = useCallback(async () => {
     await queryClient.cancelQueries({ queryKey: userInfoKey });
@@ -149,7 +152,13 @@ export function useTitleActions() {
   }, [getUserInfo, setUserInfo, queryClient, userInfoKey, titleId, titleName, unwatch, t]);
 
   const handleWatchEpisode = useCallback(
-    async (episodeId: string, seasonNum: number, epNum: number, isWatched: boolean) => {
+    async (
+      episodeId: string,
+      seasonNum: number,
+      epNum: number,
+      isWatched: boolean,
+      watchedAt?: Date,
+    ) => {
       await queryClient.cancelQueries({ queryKey: userInfoKey });
       setWatchingEp(episodeId);
 
@@ -189,7 +198,7 @@ export function useTitleActions() {
         }));
 
         try {
-          await watch({ scope: "episode", ids: [episodeId] });
+          await watch({ scope: "episode", ids: [episodeId], watchedAt: watchedAt?.toISOString() });
 
           const watchedSet = new Set(getUserInfo().episodeWatches);
           const previousUnwatched: string[] = [];
