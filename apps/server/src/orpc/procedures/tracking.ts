@@ -33,16 +33,16 @@ const watchHistoryTypeMap = { movie: "movies", episode: "episodes" } as const;
 
 // All tracking core functions are synchronous (bun:sqlite). If any become
 // async, these loops need to be awaited to surface errors properly.
-function handleWatch(userId: string, scope: WatchScopeType, ids: string[]) {
+function handleWatch(userId: string, scope: WatchScopeType, ids: string[], watchedAt?: Date) {
   switch (scope) {
     case "movie":
-      for (const id of ids) logMovieWatch(userId, id);
+      for (const id of ids) logMovieWatch(userId, id, "manual", watchedAt);
       break;
     case "episode":
       if (ids.length === 1) {
-        logEpisodeWatch(userId, ids[0]);
+        logEpisodeWatch(userId, ids[0], "manual", watchedAt);
       } else {
-        logEpisodeWatchBatch(userId, ids);
+        logEpisodeWatchBatch(userId, ids, "manual", watchedAt);
       }
       break;
     case "season":
@@ -74,7 +74,17 @@ function handleUnwatch(userId: string, scope: WatchScopeType, ids: string[]) {
 // ─── Procedures ───────────────────────────────────────────────
 
 export const watch = os.tracking.watch.use(authed).handler(({ input, context }) => {
-  handleWatch(context.user.id, input.scope, input.ids);
+  let watchedAt: Date | undefined;
+  if (input.watchedAt) {
+    if (input.scope !== "movie" && input.scope !== "episode") {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "watchedAt is only supported for movies and episodes",
+      });
+    }
+    // A watch can't be in the future; clamp (also absorbs small client clock skew).
+    watchedAt = new Date(Math.min(new Date(input.watchedAt).getTime(), Date.now()));
+  }
+  handleWatch(context.user.id, input.scope, input.ids, watchedAt);
 });
 
 export const unwatch = os.tracking.unwatch.use(authed).handler(({ input, context }) => {

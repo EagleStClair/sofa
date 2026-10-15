@@ -23,6 +23,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { WatchDateDialog } from "@/components/watch-date-dialog";
+import { useLongPress } from "@/hooks/use-long-press";
 import type { Season } from "@sofa/api/schemas";
 import { formatShortDate } from "@sofa/i18n/format";
 
@@ -51,6 +53,57 @@ export function SeasonsSkeleton() {
         ))}
       </div>
     </div>
+  );
+}
+
+function EpisodeCheck({
+  isWatched,
+  epNum,
+  disabled,
+  onToggle,
+  onPickDate,
+}: {
+  isWatched: boolean;
+  epNum: number;
+  disabled: boolean;
+  onToggle: () => void;
+  onPickDate: () => void;
+}) {
+  const { t } = useLingui();
+  // Long-press (or right-click) an unwatched episode to log it on an earlier date.
+  const longPress = useLongPress(() => {
+    if (!isWatched && !disabled) onPickDate();
+  });
+  return (
+    <button
+      type="button"
+      aria-label={isWatched ? t`Unmark episode ${epNum}` : t`Mark episode ${epNum} watched`}
+      {...longPress.handlers}
+      onClick={() => {
+        if (longPress.consumeLongPress()) return;
+        onToggle();
+      }}
+      disabled={disabled}
+      className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all select-none [-webkit-touch-callout:none] ${
+        isWatched
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-muted-foreground/40 bg-muted-foreground/5 hover:border-primary/70 hover:bg-primary/10"
+      }`}
+    >
+      {isWatched && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 500,
+            damping: 15,
+          }}
+        >
+          <IconCheck className="size-3.5" />
+        </motion.div>
+      )}
+    </button>
   );
 }
 
@@ -87,6 +140,11 @@ export function TitleSeasons({
 
   const [openSeason, setOpenSeason] = useState<number | null>(null);
   const [markAllOpen, setMarkAllOpen] = useState(false);
+  const [dateEpisode, setDateEpisode] = useState<{
+    id: string;
+    seasonNumber: number;
+    episodeNumber: number;
+  } | null>(null);
 
   return (
     <div className="space-y-3">
@@ -254,14 +312,11 @@ export function TitleSeasons({
                             </div>
                           )}
                           <div className="flex gap-3 px-4 py-3">
-                            <button
-                              type="button"
-                              aria-label={
-                                isWatched
-                                  ? t`Unmark episode ${epNum}`
-                                  : t`Mark episode ${epNum} watched`
-                              }
-                              onClick={() =>
+                            <EpisodeCheck
+                              isWatched={isWatched}
+                              epNum={epNum}
+                              disabled={watchingEp === ep.id}
+                              onToggle={() =>
                                 handleWatchEpisode(
                                   ep.id,
                                   season.seasonNumber,
@@ -269,27 +324,14 @@ export function TitleSeasons({
                                   isWatched,
                                 )
                               }
-                              disabled={watchingEp === ep.id}
-                              className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all ${
-                                isWatched
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-muted-foreground/40 bg-muted-foreground/5 hover:border-primary/70 hover:bg-primary/10"
-                              }`}
-                            >
-                              {isWatched && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{
-                                    type: "spring",
-                                    stiffness: 500,
-                                    damping: 15,
-                                  }}
-                                >
-                                  <IconCheck className="size-3.5" />
-                                </motion.div>
-                              )}
-                            </button>
+                              onPickDate={() =>
+                                setDateEpisode({
+                                  id: ep.id,
+                                  seasonNumber: season.seasonNumber,
+                                  episodeNumber: ep.episodeNumber,
+                                })
+                              }
+                            />
                             {/* Desktop: inline thumbnail */}
                             {stillPath && (
                               <div className="bg-muted hidden h-14 w-24 shrink-0 overflow-hidden rounded-md sm:block">
@@ -339,6 +381,21 @@ export function TitleSeasons({
           );
         })}
       </div>
+      <WatchDateDialog
+        open={dateEpisode !== null}
+        onOpenChange={(open) => !open && setDateEpisode(null)}
+        title={dateEpisode ? `S${dateEpisode.seasonNumber} E${dateEpisode.episodeNumber}` : ""}
+        onConfirm={(watchedAt) => {
+          if (!dateEpisode) return;
+          void handleWatchEpisode(
+            dateEpisode.id,
+            dateEpisode.seasonNumber,
+            dateEpisode.episodeNumber,
+            false,
+            watchedAt,
+          );
+        }}
+      />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { RecentlyWatchedRow } from "./recently-watched-item";
 
 export function RecentlyWatchedSection() {
   const { data, isPending } = useQuery(
-    orpc.library.recentlyWatched.queryOptions({ input: { limit: 10 } }),
+    orpc.library.recentlyWatched.queryOptions({ input: { limit: 5 } }),
   );
 
   const { t } = useLingui();

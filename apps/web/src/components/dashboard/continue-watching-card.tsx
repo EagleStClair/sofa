@@ -3,7 +3,10 @@ import { useLingui } from "@lingui/react/macro";
 import { IconCheck, IconPlayerPlay } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 
+import { WatchDateDialog } from "@/components/watch-date-dialog";
+import { useLongPress } from "@/hooks/use-long-press";
 import { orpc } from "@/lib/orpc/client";
 
 import { thumbHashToUrl } from "@/lib/thumbhash";
@@ -40,6 +43,11 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
       },
     }),
   );
+
+  const [dateDialogOpen, setDateDialogOpen] = useState(false);
+  const longPress = useLongPress(() => {
+    if (item.nextEpisode && !markWatched.isPending) setDateDialogOpen(true);
+  });
 
   const stillUrl = item.nextEpisode?.stillPath ?? item.title.backdropPath ?? null;
   const progress = item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0;
@@ -103,7 +111,9 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
           type="button"
           aria-label={t`Mark episode as watched`}
           disabled={!item.nextEpisode || markWatched.isPending}
+          {...longPress.handlers}
           onClick={() => {
+            if (longPress.consumeLongPress()) return;
             if (!item.nextEpisode) return;
 
             markWatched.mutate({
@@ -111,11 +121,27 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
               ids: [item.nextEpisode.id],
             });
           }}
-          className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground absolute right-3 bottom-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50"
+          className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground absolute right-3 bottom-3 flex h-8 w-8 shrink-0 select-none [-webkit-touch-callout:none] items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50"
         >
           <IconCheck aria-hidden={true} className="size-4" />
         </button>
       
+      {item.nextEpisode && (
+        <WatchDateDialog
+          open={dateDialogOpen}
+          onOpenChange={setDateDialogOpen}
+          title={`${item.title.title} · S${item.nextEpisode.seasonNumber} E${item.nextEpisode.episodeNumber}`}
+          onConfirm={(watchedAt) => {
+            if (!item.nextEpisode) return;
+            markWatched.mutate({
+              scope: "episode",
+              ids: [item.nextEpisode.id],
+              watchedAt: watchedAt.toISOString(),
+            });
+          }}
+        />
+      )}
+
       {progress > 0 && (
         <div className="bg-muted absolute right-0 bottom-0 left-0 h-0.5">
           <div className="bg-primary h-full transition-[width]" style={{ width: `${progress}%` }} />

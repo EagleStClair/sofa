@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_app/dashboard")({
         orpc.library.upcoming.queryOptions({ input: { days: 7, limit: 5 } }),
       ),
       context.queryClient.ensureQueryData(
-        orpc.library.recentlyWatched.queryOptions({ input: { limit: 10 } }),
+        orpc.library.recentlyWatched.queryOptions({ input: { limit: 5 } }),
       ),
     ]);
   },

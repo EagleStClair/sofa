@@ -87,6 +87,13 @@ export const WatchInput = z
   .object({
     scope: WatchScope,
     ids: z.array(z.string().min(1)).min(1).max(20000).describe("IDs to mark as watched"),
+    watchedAt: z
+      .string()
+      .datetime({ offset: true })
+      .optional()
+      .describe(
+        "When it was watched (ISO 8601). Only for scope movie or episode; defaults to now and is never in the future",
+      ),
   })
   .meta({ description: "Mark one or more items as watched" });
 

@@ -125,6 +125,20 @@ describe("logMovieWatch", () => {
     expect(watches[0].titleId).toBe("title-1");
   });
 
+  test("records the given watch date", () => {
+    insertUser();
+    insertTitle();
+    const when = new Date("2026-10-05T10:00:00Z");
+    logMovieWatch("user-1", "title-1", "manual", when);
+
+    const watch = testDb
+      .select()
+      .from(userMovieWatches)
+      .where(eq(userMovieWatches.userId, "user-1"))
+      .get();
+    expect(watch?.watchedAt).toEqual(when);
+  });
+
   test("auto-sets status to completed when no prior status", () => {
     insertUser();
     insertTitle();
@@ -196,6 +210,20 @@ describe("logEpisodeWatch", () => {
       .all();
     expect(watches).toHaveLength(1);
     expect(watches[0].episodeId).toBe(episodeIds[0]);
+  });
+
+  test("records the given watch date", () => {
+    insertUser();
+    const { episodeIds } = insertTvShow();
+    const when = new Date("2026-10-05T10:00:00Z");
+    logEpisodeWatch("user-1", episodeIds[0], "manual", when);
+
+    const watch = testDb
+      .select()
+      .from(userEpisodeWatches)
+      .where(eq(userEpisodeWatches.userId, "user-1"))
+      .get();
+    expect(watch?.watchedAt).toEqual(when);
   });
 
   test("auto-sets status to in_progress", () => {
