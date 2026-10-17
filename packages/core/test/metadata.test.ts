@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 
+import { WATCH_REGION } from "@sofa/config";
 import { titles } from "@sofa/db/schema";
 import { clearAllTables, insertTitle, testDb } from "@sofa/test/db";
 import type { TmdbMovieDetails, TmdbTvDetails, TmdbVideo } from "@sofa/tmdb/client";
@@ -119,12 +120,12 @@ describe("pickBestTrailer", () => {
 });
 
 describe("extractMovieContentRating", () => {
-  test("returns US certification", () => {
+  test("returns the certification for the watch region", () => {
     const movie = {
       release_dates: {
         results: [
           {
-            iso_3166_1: "US",
+            iso_3166_1: WATCH_REGION,
             release_dates: [{ certification: "PG-13", type: 3 }],
           },
         ],
@@ -138,7 +139,7 @@ describe("extractMovieContentRating", () => {
       release_dates: {
         results: [
           {
-            iso_3166_1: "US",
+            iso_3166_1: WATCH_REGION,
             release_dates: [
               { certification: "", type: 1 },
               { certification: "R", type: 3 },
@@ -150,7 +151,7 @@ describe("extractMovieContentRating", () => {
     expect(extractMovieContentRating(movie)).toBe("R");
   });
 
-  test("returns null when no US entry", () => {
+  test("returns null when no entry for the watch region", () => {
     const movie = {
       release_dates: {
         results: [
@@ -169,12 +170,12 @@ describe("extractMovieContentRating", () => {
     expect(extractMovieContentRating(movie)).toBeNull();
   });
 
-  test("returns null when all US certifications are empty", () => {
+  test("returns null when all certifications for the watch region are empty", () => {
     const movie = {
       release_dates: {
         results: [
           {
-            iso_3166_1: "US",
+            iso_3166_1: WATCH_REGION,
             release_dates: [
               { certification: "", type: 1 },
               { certification: "", type: 3 },
@@ -188,16 +189,16 @@ describe("extractMovieContentRating", () => {
 });
 
 describe("extractTvContentRating", () => {
-  test("returns US rating", () => {
+  test("returns the rating for the watch region", () => {
     const show = {
       content_ratings: {
-        results: [{ iso_3166_1: "US", rating: "TV-MA" }],
+        results: [{ iso_3166_1: WATCH_REGION, rating: "TV-MA" }],
       },
     } as unknown as TmdbTvDetails;
     expect(extractTvContentRating(show)).toBe("TV-MA");
   });
 
-  test("returns null when no US entry", () => {
+  test("returns null when no entry for the watch region", () => {
     const show = {
       content_ratings: {
         results: [{ iso_3166_1: "DE", rating: "16" }],
@@ -211,10 +212,10 @@ describe("extractTvContentRating", () => {
     expect(extractTvContentRating(show)).toBeNull();
   });
 
-  test("returns null when US rating is empty", () => {
+  test("returns null when the rating for the watch region is empty", () => {
     const show = {
       content_ratings: {
-        results: [{ iso_3166_1: "US", rating: "" }],
+        results: [{ iso_3166_1: WATCH_REGION, rating: "" }],
       },
     } as unknown as TmdbTvDetails;
     expect(extractTvContentRating(show)).toBeNull();

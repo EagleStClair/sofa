@@ -253,7 +253,8 @@ export async function getTvSeasonDetails(tmdbId: number, seasonNumber: number) {
 // ─── Watch Providers ────────────────────────────────────────────────
 
 export async function getWatchProviders(tmdbId: number, type: "movie" | "tv") {
-  const query = { watch_region: WATCH_REGION };
+  // TMDB accepts watch_region here but its OpenAPI spec omits the query parameter.
+  const query = { watch_region: WATCH_REGION } as unknown as undefined;
   if (type === "movie") {
     const { data, error } = await client.GET("/3/movie/{movie_id}/watch/providers", {
       params: { path: { movie_id: tmdbId }, query },

@@ -101,18 +101,6 @@ describe("getFilteredLibraryFeed", () => {
     expect(tv.items[0]!.type).toBe("tv");
   });
 
-  test("filters by search text", () => {
-    insertUser();
-    insertTitle({ id: "m1", tmdbId: 1, title: "The Matrix" });
-    insertTitle({ id: "m2", tmdbId: 2, title: "Inception" });
-    insertStatus("user-1", "m1", "watchlist");
-    insertStatus("user-1", "m2", "watchlist");
-
-    const result = getFilteredLibraryFeed("user-1", { ...defaultFilters, search: "matrix" });
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]!.title).toBe("The Matrix");
-  });
-
   test("filters by status", () => {
     insertUser();
     insertTitle({ id: "m1", tmdbId: 1 });

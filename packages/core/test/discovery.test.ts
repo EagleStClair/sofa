@@ -214,9 +214,11 @@ describe("getUserStats", () => {
 // ── getContinueWatchingFeed ─────────────────────────────────────────
 
 describe("getContinueWatchingFeed", () => {
-  test("returns in-progress shows with next unwatched episode", () => {
+  test("returns in-progress shows with next unwatched (aired) episode", () => {
     insertUser();
-    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 3);
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
     insertStatus("user-1", titleId, "in_progress");
     insertEpisodeWatch("user-1", episodeIds[0]);
 
@@ -254,8 +256,12 @@ describe("getContinueWatchingFeed", () => {
 
   test("sorts by most recent watch", () => {
     insertUser();
-    const show1 = insertTvShow("tv-1", 11111, 1, 3);
-    const show2 = insertTvShow("tv-2", 22222, 1, 3);
+    const show1 = insertTvShow("tv-1", 11111, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
+    const show2 = insertTvShow("tv-2", 22222, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
     insertStatus("user-1", show1.titleId, "in_progress");
     insertStatus("user-1", show2.titleId, "in_progress");
 
