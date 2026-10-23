@@ -15,8 +15,14 @@ import { orpc } from "@/lib/orpc/client";
 export const Route = createFileRoute("/_app/dashboard")({
   staleTime: 120_000,
   loader: async ({ context }) => {
-    // Not awaited: the insights row fills in on its own and must not delay first paint.
+    // Not awaited: these sections fill in on their own and must not delay first paint.
     void context.queryClient.prefetchQuery(orpc.library.insights.queryOptions());
+    void context.queryClient.prefetchQuery(
+      orpc.library.upcoming.queryOptions({ input: { days: 7, limit: 5 } }),
+    );
+    void context.queryClient.prefetchQuery(
+      orpc.library.recentlyWatched.queryOptions({ input: { limit: 5 } }),
+    );
     await Promise.all([
       context.queryClient.ensureQueryData(
         orpc.tracking.stats.queryOptions({ input: { type: "movie", period: "this_month" } }),
@@ -25,12 +31,6 @@ export const Route = createFileRoute("/_app/dashboard")({
         orpc.tracking.stats.queryOptions({ input: { type: "episode", period: "this_week" } }),
       ),
       context.queryClient.ensureQueryData(orpc.library.continueWatching.queryOptions()),
-      context.queryClient.ensureQueryData(
-        orpc.library.upcoming.queryOptions({ input: { days: 7, limit: 5 } }),
-      ),
-      context.queryClient.ensureQueryData(
-        orpc.library.recentlyWatched.queryOptions({ input: { limit: 5 } }),
-      ),
     ]);
   },
   head: () => ({ meta: [{ title: "Dashboard — Sofa" }] }),

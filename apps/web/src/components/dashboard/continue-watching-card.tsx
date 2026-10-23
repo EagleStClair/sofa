@@ -40,6 +40,10 @@ export function ContinueWatchingCard({ item }: { item: ContinueWatchingItemProps
         queryClient.invalidateQueries({
           queryKey: orpc.library.continueWatching.queryKey(),
         });
+        // Keep the rest of the dashboard in sync with the new watch.
+        queryClient.invalidateQueries({ queryKey: orpc.library.recentlyWatched.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.library.insights.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.tracking.stats.key() });
       },
     }),
   );
