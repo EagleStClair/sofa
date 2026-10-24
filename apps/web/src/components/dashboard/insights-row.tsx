@@ -17,13 +17,13 @@ function Cell({ minutes, count, muted }: { minutes: number; count: number; muted
         ? t`${hours} h`
         : t`${minutes} min`;
   return (
-    <div className="min-w-0">
+    <div className="flex min-w-0 flex-col">
       <span
         className={`font-display text-xl tracking-tight tabular-nums ${muted ? "text-foreground/70" : "text-primary"}`}
       >
         {duration}
       </span>
-      <span className="text-muted-foreground ms-1.5 text-xs tabular-nums">{count}×</span>
+      <span className="text-muted-foreground text-xs tabular-nums">{count}×</span>
     </div>
   );
 }
