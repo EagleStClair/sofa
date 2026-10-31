@@ -1,11 +1,22 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { cronRuns, seasons, titles } from "@sofa/db/schema";
-import { clearAllTables, eq, insertTitle, testDb } from "@sofa/test/db";
+import { cronRuns, seasons, titleAvailability, titles } from "@sofa/db/schema";
+import {
+  clearAllTables,
+  eq,
+  insertPlatform,
+  insertStatus,
+  insertTitle,
+  insertTitleAvailability,
+  insertUser,
+  testDb,
+} from "@sofa/test/db";
 
 import {
   completeCronRun,
+  deleteAvailabilityForTitles,
   failCronRun,
+  getAvailabilityRefreshTitleIds,
   getLibraryTitlesDueForRefresh,
   getStaleLibraryTitles,
   getTitleIdsWithStaleSeasons,
@@ -126,6 +137,78 @@ describe("getStaleLibraryTitles", () => {
     insertTitle({ id: "t-shell", tmdbId: 1 });
     insertTitle({ id: "t-other", tmdbId: 4 });
     expect(getStaleLibraryTitles(["t-shell"], staleDate)).toEqual([{ id: "t-shell" }]);
+  });
+});
+
+describe("getAvailabilityRefreshTitleIds", () => {
+  test("skips completed movies", () => {
+    const userId = insertUser();
+    insertTitle({ id: "m-done", tmdbId: 1, type: "movie" });
+    insertStatus(userId, "m-done", "completed");
+    expect(getAvailabilityRefreshTitleIds()).toEqual([]);
+  });
+
+  test("includes watchlist and in-progress titles", () => {
+    const userId = insertUser();
+    insertTitle({ id: "m-watchlist", tmdbId: 1, type: "movie" });
+    insertTitle({ id: "tv-progress", tmdbId: 2, type: "tv" });
+    insertStatus(userId, "m-watchlist", "watchlist");
+    insertStatus(userId, "tv-progress", "in_progress");
+    expect(getAvailabilityRefreshTitleIds().sort()).toEqual(["m-watchlist", "tv-progress"]);
+  });
+
+  test("includes completed series that have not ended", () => {
+    const userId = insertUser();
+    insertTitle({ id: "tv-done", tmdbId: 1, type: "tv", status: "Returning Series" });
+    insertStatus(userId, "tv-done", "completed");
+    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-done"]);
+  });
+
+  test("includes completed series with an unknown status", () => {
+    const userId = insertUser();
+    insertTitle({ id: "tv-unknown", tmdbId: 1, type: "tv" });
+    insertStatus(userId, "tv-unknown", "completed");
+    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-unknown"]);
+  });
+
+  test("skips completed series once ended or canceled", () => {
+    const userId = insertUser();
+    insertTitle({ id: "tv-ended", tmdbId: 1, type: "tv", status: "Ended" });
+    insertTitle({ id: "tv-canceled", tmdbId: 2, type: "tv", status: "Canceled" });
+    insertStatus(userId, "tv-ended", "completed");
+    insertStatus(userId, "tv-canceled", "completed");
+    expect(getAvailabilityRefreshTitleIds()).toEqual([]);
+  });
+
+  test("includes a movie one user completed if another user still has it watchlisted", () => {
+    const userA = insertUser("user-a");
+    const userB = insertUser("user-b");
+    insertTitle({ id: "m-shared", tmdbId: 1, type: "movie" });
+    insertStatus(userA, "m-shared", "completed");
+    insertStatus(userB, "m-shared", "watchlist");
+    expect(getAvailabilityRefreshTitleIds()).toEqual(["m-shared"]);
+  });
+});
+
+describe("deleteAvailabilityForTitles", () => {
+  test("deletes offers only for the given titles", () => {
+    const userId = insertUser();
+    insertTitle({ id: "m-done", tmdbId: 1, type: "movie" });
+    insertTitle({ id: "m-watch", tmdbId: 2, type: "movie" });
+    insertStatus(userId, "m-done", "completed");
+    insertStatus(userId, "m-watch", "watchlist");
+    insertPlatform({ id: "p1" });
+    insertTitleAvailability("m-done", "p1");
+    insertTitleAvailability("m-watch", "p1");
+
+    expect(deleteAvailabilityForTitles(["m-done"])).toBe(1);
+    const remaining = testDb.select().from(titleAvailability).all();
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0]?.titleId).toBe("m-watch");
+  });
+
+  test("is a no-op for an empty list", () => {
+    expect(deleteAvailabilityForTitles([])).toBe(0);
   });
 });
 
