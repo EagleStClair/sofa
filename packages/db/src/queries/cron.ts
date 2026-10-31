@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, isNull, lt, ne, notInArray, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 
 import { db } from "../client";
 import {
@@ -9,6 +9,7 @@ import {
   titles,
   userTitleStatus,
 } from "../schema";
+import { displayStatusExpr } from "./library";
 
 export function insertCronRunReturning(jobName: string) {
   return db
@@ -41,29 +42,19 @@ export function getLibraryTitleIds(): string[] {
     .map((r) => r.titleId);
 }
 
-/** TMDB statuses of series that will not get new seasons. */
-const SETTLED_TV_STATUSES = ["Ended", "Canceled"];
-
 /**
- * Library titles whose streaming availability is still worth refreshing:
- * anything watchlisted or in progress, plus completed series that have not
- * ended or been canceled (they can return with new seasons). Completed movies
- * are excluded. A title counts if any user still has it as one of these.
+ * Library titles whose streaming availability is still worth refreshing: everything
+ * a user has not finished. Uses the same derived display status as the library, so a
+ * fully watched series that is no longer ongoing counts as finished even though it is
+ * stored as in_progress. Ongoing series stay in (caught_up) since new seasons can
+ * arrive. A title counts if any user still has it as something other than completed.
  */
 export function getAvailabilityRefreshTitleIds(): string[] {
   return db
     .select({ titleId: userTitleStatus.titleId })
     .from(userTitleStatus)
     .innerJoin(titles, eq(titles.id, userTitleStatus.titleId))
-    .where(
-      or(
-        ne(userTitleStatus.status, "completed"),
-        and(
-          eq(titles.type, "tv"),
-          or(isNull(titles.status), notInArray(titles.status, SETTLED_TV_STATUSES)),
-        ),
-      ),
-    )
+    .where(sql`${displayStatusExpr()} != 'completed'`)
     .groupBy(userTitleStatus.titleId)
     .all()
     .map((r) => r.titleId);
