@@ -4,10 +4,12 @@ import { cronRuns, seasons, titleAvailability, titles } from "@sofa/db/schema";
 import {
   clearAllTables,
   eq,
+  insertEpisodeWatch,
   insertPlatform,
   insertStatus,
   insertTitle,
   insertTitleAvailability,
+  insertTvShow,
   insertUser,
   testDb,
 } from "@sofa/test/db";
@@ -141,6 +143,8 @@ describe("getStaleLibraryTitles", () => {
 });
 
 describe("getAvailabilityRefreshTitleIds", () => {
+  const aired = ["2020-01-01", "2020-01-08"];
+
   test("skips completed movies", () => {
     const userId = insertUser();
     insertTitle({ id: "m-done", tmdbId: 1, type: "movie" });
@@ -148,35 +152,44 @@ describe("getAvailabilityRefreshTitleIds", () => {
     expect(getAvailabilityRefreshTitleIds()).toEqual([]);
   });
 
-  test("includes watchlist and in-progress titles", () => {
+  test("includes watchlist movies and series that were never started", () => {
     const userId = insertUser();
     insertTitle({ id: "m-watchlist", tmdbId: 1, type: "movie" });
-    insertTitle({ id: "tv-progress", tmdbId: 2, type: "tv" });
+    insertTvShow("tv-watchlist", 2, 1, 2, { airDates: aired, status: "Ended" });
     insertStatus(userId, "m-watchlist", "watchlist");
-    insertStatus(userId, "tv-progress", "in_progress");
-    expect(getAvailabilityRefreshTitleIds().sort()).toEqual(["m-watchlist", "tv-progress"]);
+    insertStatus(userId, "tv-watchlist", "watchlist");
+    expect(getAvailabilityRefreshTitleIds().sort()).toEqual(["m-watchlist", "tv-watchlist"]);
   });
 
-  test("includes completed series that have not ended", () => {
+  test("includes an in-progress series with unwatched aired episodes, even if it has ended", () => {
     const userId = insertUser();
-    insertTitle({ id: "tv-done", tmdbId: 1, type: "tv", status: "Returning Series" });
-    insertStatus(userId, "tv-done", "completed");
-    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-done"]);
+    const { episodeIds } = insertTvShow("tv-watching", 1, 1, 2, {
+      airDates: aired,
+      status: "Ended",
+    });
+    insertStatus(userId, "tv-watching", "in_progress");
+    insertEpisodeWatch(userId, episodeIds[0]!);
+    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-watching"]);
   });
 
-  test("includes completed series with an unknown status", () => {
+  test("includes a caught-up series that is still ongoing", () => {
     const userId = insertUser();
-    insertTitle({ id: "tv-unknown", tmdbId: 1, type: "tv" });
-    insertStatus(userId, "tv-unknown", "completed");
-    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-unknown"]);
+    const { episodeIds } = insertTvShow("tv-caught-up", 1, 1, 2, {
+      airDates: aired,
+      status: "Returning Series",
+    });
+    insertStatus(userId, "tv-caught-up", "in_progress");
+    for (const id of episodeIds) insertEpisodeWatch(userId, id);
+    expect(getAvailabilityRefreshTitleIds()).toEqual(["tv-caught-up"]);
   });
 
-  test("skips completed series once ended or canceled", () => {
+  test("skips a fully watched series that has ended or been canceled", () => {
     const userId = insertUser();
-    insertTitle({ id: "tv-ended", tmdbId: 1, type: "tv", status: "Ended" });
-    insertTitle({ id: "tv-canceled", tmdbId: 2, type: "tv", status: "Canceled" });
-    insertStatus(userId, "tv-ended", "completed");
-    insertStatus(userId, "tv-canceled", "completed");
+    const ended = insertTvShow("tv-ended", 1, 1, 2, { airDates: aired, status: "Ended" });
+    const canceled = insertTvShow("tv-canceled", 2, 1, 2, { airDates: aired, status: "Canceled" });
+    insertStatus(userId, "tv-ended", "in_progress");
+    insertStatus(userId, "tv-canceled", "in_progress");
+    for (const id of [...ended.episodeIds, ...canceled.episodeIds]) insertEpisodeWatch(userId, id);
     expect(getAvailabilityRefreshTitleIds()).toEqual([]);
   });
 

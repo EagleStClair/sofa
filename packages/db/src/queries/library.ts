@@ -51,7 +51,7 @@ function watchedEpisodeCount(
     );
 }
 
-function displayStatusExpr() {
+export function displayStatusExpr() {
   const today = new Date().toISOString().slice(0, 10);
   const aired = airedEpisodeCount(titles.id, today);
   const watched = watchedEpisodeCount(titles.id, userTitleStatus.userId, today);
