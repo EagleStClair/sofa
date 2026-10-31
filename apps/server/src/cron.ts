@@ -5,7 +5,9 @@ import { createBackup, ensureBackupDir, pruneBackups } from "@sofa/core/backup";
 import { refreshCredits, syncCastProfileThumbHashes } from "@sofa/core/credits";
 import {
   completeCronRun,
+  deleteAvailabilityForTitles,
   failCronRun,
+  getAvailabilityRefreshTitleIds,
   getLibraryTitleIds,
   getReturningTvShows,
   getLibraryTitlesDueForRefresh,
@@ -129,13 +131,16 @@ async function nightlyRefreshLibrary() {
   );
 }
 
-// Refresh availability for library titles where stale
+// Refresh availability only for titles that can still be watched, and clear
+// cached offers for the rest so a completed title doesn't keep showing
+// availability from when it was watchlisted.
 async function refreshAvailabilityJob() {
   const libraryIds = getLibraryTitleIds();
-  log.debug(`Checking availability for ${libraryIds.length} library titles`);
+  const refreshIds = getAvailabilityRefreshTitleIds();
+  const refreshSet = new Set(refreshIds);
   const stale = new Date(Date.now() - DAY);
 
-  const staleIds = getTitleIdsCheckedBefore(libraryIds, "availabilityCheckedAt", stale);
+  const staleIds = getTitleIdsCheckedBefore(refreshIds, "availabilityCheckedAt", stale);
 
   await runIsolated(
     staleIds,
@@ -145,6 +150,8 @@ async function refreshAvailabilityJob() {
     },
     (id, err) => log.warn(`Failed to refresh availability for title ${id}:`, err),
   );
+
+  deleteAvailabilityForTitles(libraryIds.filter((id) => !refreshSet.has(id)));
 }
 
 async function refreshTvChildrenJob() {

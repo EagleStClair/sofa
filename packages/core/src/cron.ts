@@ -1,4 +1,6 @@
 import {
+  deleteAvailabilityForTitles as queryDeleteAvailabilityForTitles,
+  getAvailabilityRefreshTitleIds as queryGetAvailabilityRefreshTitleIds,
   getCastEntryForTitle,
   getLibraryTitleIds as queryGetLibraryTitleIds,
   getRefreshCandidates,
@@ -60,6 +62,14 @@ export function failCronRun(runId: string, durationMs: number, error: unknown): 
 
 export function getLibraryTitleIds(): string[] {
   return queryGetLibraryTitleIds();
+}
+
+export function getAvailabilityRefreshTitleIds(): string[] {
+  return queryGetAvailabilityRefreshTitleIds();
+}
+
+export function deleteAvailabilityForTitles(titleIds: string[]): number {
+  return queryDeleteAvailabilityForTitles(titleIds);
 }
 
 export function getThumbhashBackfillTitleIds(): string[] {

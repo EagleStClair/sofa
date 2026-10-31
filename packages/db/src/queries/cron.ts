@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, isNull, lt, ne, notInArray, or, sql } from "drizzle-orm";
 
 import { db } from "../client";
 import {
@@ -39,6 +39,47 @@ export function getLibraryTitleIds(): string[] {
     .groupBy(userTitleStatus.titleId)
     .all()
     .map((r) => r.titleId);
+}
+
+/** TMDB statuses of series that will not get new seasons. */
+const SETTLED_TV_STATUSES = ["Ended", "Canceled"];
+
+/**
+ * Library titles whose streaming availability is still worth refreshing:
+ * anything watchlisted or in progress, plus completed series that have not
+ * ended or been canceled (they can return with new seasons). Completed movies
+ * are excluded. A title counts if any user still has it as one of these.
+ */
+export function getAvailabilityRefreshTitleIds(): string[] {
+  return db
+    .select({ titleId: userTitleStatus.titleId })
+    .from(userTitleStatus)
+    .innerJoin(titles, eq(titles.id, userTitleStatus.titleId))
+    .where(
+      or(
+        ne(userTitleStatus.status, "completed"),
+        and(
+          eq(titles.type, "tv"),
+          or(isNull(titles.status), notInArray(titles.status, SETTLED_TV_STATUSES)),
+        ),
+      ),
+    )
+    .groupBy(userTitleStatus.titleId)
+    .all()
+    .map((r) => r.titleId);
+}
+
+/**
+ * Delete cached availability offers for the given titles, so titles we no
+ * longer refresh don't keep showing offers from when they were watchlisted.
+ */
+export function deleteAvailabilityForTitles(titleIds: string[]): number {
+  if (titleIds.length === 0) return 0;
+  return db
+    .delete(titleAvailability)
+    .where(inArray(titleAvailability.titleId, titleIds))
+    .returning({ titleId: titleAvailability.titleId })
+    .all().length;
 }
 
 export function getStaleTitles(titleIds: string[], staleDate: Date) {
